@@ -1,0 +1,38 @@
+{
+    "name": "tgb",
+    "version": "0.0.1",
+    "description": "The best choice for your Telegram Bots",
+    "homepage": "https://666.io",
+    "keywords": [
+        "telegram",
+        "bot",
+        "api",
+        "cli",
+        "tgb",
+        "bottality"
+    ],
+    "author": {
+        "name": "Daeren",
+        "email": "x@db.gg"
+    },
+    "bin": {
+        "tgb": "./bin/index.js"
+    },
+    "main": "./index",
+    "scripts": {
+        "test": "mocha --reporter spec"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/Daeren/tgb.git"
+    },
+    "license": "MIT",
+    "engines": {
+        "node": ">=6.0.0"
+    },
+    "readme": "",
+    "readmeFilename": "readme.md",
+    "bugs": {
+        "url": "https://github.com/Daeren/tgb/issues"
+    }
+}
