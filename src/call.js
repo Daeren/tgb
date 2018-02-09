@@ -106,20 +106,22 @@ function call(proxy, token, method, data, callback) {
 
         //-------]>
 
-        updateMpBoundary();
-        request.setHeader("Content-Type", mpHeaderContentType);
+        const limit = dataIsArray ? Math.min(dataLen, schema.length) : schema.length;
+
+        let count = -1,
+            written = false;
 
         //-------]>
-
-        const limit = dataIsArray ? Math.min(dataLen, schema.length) : schema.length;
-        let count = -1;
 
         (function nextField() {
             ++count;
 
             if(count >= limit) {
-                request.write(mpCRLFBoundaryEnd);
-                uncork(request);
+                if(written) {
+                    request.write(mpCRLFBoundaryEnd);
+                    uncork(request);
+                }
+
                 request.end();
             }
             else {
@@ -132,6 +134,13 @@ function call(proxy, token, method, data, callback) {
                     nextField();
                 }
                 else {
+                    if(!written) {
+                        updateMpBoundary();
+                        request.setHeader("Content-Type", mpHeaderContentType);
+
+                        written = true;
+                    }
+
                     cork(request);
                     request.write(makeFieldStr(field));
                     writeData(request, field, type, input, nextField);
@@ -416,7 +425,7 @@ function makeFieldStr(name) {
 
 function makeFieldStrValue(type, data) {
     switch(type) {
-        case "boolean": return data === true ||  data === 1 || data === "1" || data === "yes" || data === "ok" ? "1" : "0";
+        case "boolean": return data === true ||  data === 1 || data === "1" || data === "true" || data === "yes" || data === "ok" ? "1" : "0";
         case "string": return typeof(data) === "string" || Buffer.isBuffer(data) ? data : (data + "");
         case "json": return typeof(data) === "string" || Buffer.isBuffer(data) ? data : (JSON.stringify(data) || "");
 

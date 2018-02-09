@@ -172,6 +172,9 @@ Files must be smaller than 5 MB for photos and smaller than 20 MB for all other 
 
 > tgb-cli --method getMe --token 0:XXXX
 > tgb-cli --method getMe --token 0:XXXX --proxy "127.0.0.1:1337"
+
+> tgb-cli --method sendMessage --data "{\"chat_id\":0,\"text\":\"Hi yo\"}"
+> tgb-cli --method sendMessage --d.chat_id 1 --data "{\"chat_id\":0,\"text\":\"Hi yo\"}"
 ```
 
 
@@ -200,6 +203,11 @@ bot.sendMediaGroup({
 ```
 /*
  tgb = require("tgb");
+
+-
+
+ tgb.buffer(proxy, token, method, data, callback(error, buf, res))
+ tgb.json(proxy, token, method, data, callback(error, buf, res))
 
 -
 

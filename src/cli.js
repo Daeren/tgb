@@ -11,9 +11,8 @@ const client = require("./client");
 
 const envToken = process.env.TELEGRAM_BOT_TOKEN;
 
-const cmdOptions = {
-    "data": {}
-};
+const cmdData = {};
+const cmdOptions = {};
 
 //-----------------------------------------------------
 
@@ -50,7 +49,7 @@ const cmdOptions = {
         const t = k.split(/^d\./);
 
         if(t.length === 2) {
-            cmdOptions.data[t.pop()] = v;
+            cmdData[t.pop()] = v;
         }
         else {
             cmdOptions[k] = v;
@@ -60,13 +59,22 @@ const cmdOptions = {
 
 //-----------------------------------------------------
 
+if(cmdOptions.data) {
+    cmdOptions.data = JSON.parse(cmdOptions.data);
+}
+
+//-----------------------------------------------------
+
 const token = cmdOptions.token || envToken;
+const data = Array.isArray(cmdOptions.data) ? cmdOptions.data : Object.assign(cmdOptions.data || {}, cmdData);
 
 const {
-    method, data, proxy
+    method, proxy
 } = cmdOptions;
 
 const prettyJson = !!cmdOptions.j;
+
+console.log(cmdOptions);
 
 //-----------------------------------------------------
 
