@@ -18,7 +18,9 @@ await require("tgb").sendMessage("TK", {chat_id: 0, text: "+"}, proxy)
 * [Proxy](#refProxy): +
 * [File as Buffer](#refSendFileAsBuffer)
 * [ReqAbort](#refReqAbort): +
+* [ReqPause](#refReqAbort): +
 * [TgUpload](#refTgUpload): +
+* [Download](#refDownload)
 * Redirect: +
 * HashTable, Array and [Map][10] as a data source: +
 
@@ -91,13 +93,20 @@ const bot = tgb(process.env.TELEGRAM_BOT_TOKEN);
 void async function () {
     const [res, req] = bot.sendAudio({"chat_id": "0", "audio": "O://1.mp3"});
 
-    setTimeout(function() {
-        req.abort();
-        console.log(req.aborted);
+    setTimeout(() => {
+        req.pause();
     }, 500);
 
+    setTimeout(() => {
+        req.resume();
+    }, 2500);
+
+    setTimeout(() => {
+        req.abort();
+    }, 4500);
+
     console.log(await res);
-    console.log(req.ended, req.aborted);
+    console.log(req.ended, req.aborted, req.paused);
 }();
 ```
 
@@ -123,6 +132,19 @@ Added the option to specify an HTTP URL for a file in all methods where InputFil
 Telegram will get the file from the specified URL and send it to the user.
 Files must be smaller than 5 MB for photos and smaller than 20 MB for all other types of content.
 */
+```
+
+
+<a name="refDownload"></a>
+```js
+const tgb = require("tgb");
+
+void async function () {
+    const bot = tgb(process.env.TELEGRAM_BOT_TOKEN);
+    const fileId = "AgADAgAD36gxGwWj2EuIQ9vvX_3kbh-cmg4ABDhqGLqV07c_phkBAAEC";
+
+    console.log(await tgb.download(bot.token, fileId));
+}();
 ```
 
 
@@ -172,6 +194,9 @@ bot.sendMediaGroup({
   tgb.ERR_INVALID_TOKEN
 */
 ```
+
+
+Me? Him? Me? You? Me? ... Him? Me ... `npm -g i tgb` .... Whaat is Love  ♫•*¨*•.¸¸♪
 
 
 ## License

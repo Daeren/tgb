@@ -8,6 +8,13 @@
 const http = require("http");
 const https = require("https");
 
+const events = require("events");
+
+const {
+    cbNoop,
+    once
+} = require("./tools");
+
 //-----------------------------------------------------
 
 const keepAliveAgentHTTP = new http.Agent({"keepAlive": true});
@@ -48,6 +55,41 @@ const reqProxyOptions = {
 //-----------------------------------------------------
 
 let proxyAddressCache = NaN;
+
+//-----------------------------------------------------
+
+class Request extends events {
+    get paused() { return this.__pause || false; }
+    get aborted() { return this.__aborted || false; }
+    get ended() { return this.__ended || false; }
+
+
+    abort() {
+        this.__aborted = true;
+
+        if(req) {
+            req.abort();
+            req = null;
+        }
+
+        if(tunReq) {
+            tunReq.abort();
+            tunReq = null;
+        }
+
+        this.emit("abort");
+    }
+
+    resume() {
+        this.__pause = false;
+        this.emit("resume");
+    }
+
+    pause() {
+        this.__pause = true;
+        this.emit("pause");
+    }
+}
 
 //-----------------------------------------------------
 
@@ -122,24 +164,7 @@ function call(proxy, token, method, cbInit, cbResult) {
     //--------------]>
 
     function createCallInstance() {
-        return {
-            get aborted() { return this.__aborted || false; },
-            get ended() { return this.__ended || false; },
-
-            abort() {
-                this.__aborted = true;
-
-                if(req) {
-                    req.abort();
-                    req = null;
-                }
-
-                if(tunReq) {
-                    tunReq.abort();
-                    tunReq = null;
-                }
-            }
-        };
+        return new Request();
     }
 
     //-------)>
@@ -224,23 +249,4 @@ function call(proxy, token, method, cbInit, cbResult) {
 function free() {
     keepAliveAgentHTTP.destroy();
     keepAliveAgentHTTPS.destroy();
-}
-
-//-----------------------------------------------------
-
-function once(func) {
-    let fired = false;
-
-    return function() {
-        if(!fired) {
-            fired = true;
-            func.apply(this, arguments);
-        }
-    };
-}
-
-function cbNoop(error) {
-    if(error) {
-        throw error;
-    }
 }

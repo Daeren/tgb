@@ -17,9 +17,13 @@ const https = require("https");
 const reIsFilePath = /[\\\/\.]/;
 const reIsHttps = /^https?:\/\//;
 
+const pumpPipeOpts = {"end": false};
+
 //-----------------------------------------------------
 
 module.exports = {
+    cbNoop,
+    once,
     forEachAsync,
 
     isStream,
@@ -29,12 +33,33 @@ module.exports = {
     isHttp,
     isFilepath,
 
+    pump,
+    wrapReqToPromise,
+
     getFilenameFromStream,
     getFileExtByMime,
+    getRequest,
     getWebContent
 };
 
 //-----------------------------------------------------
+
+function cbNoop(error) {
+    if(error) {
+        throw error;
+    }
+}
+
+function once(func) {
+    let fired = false;
+
+    return function() {
+        if(!fired) {
+            fired = true;
+            func.apply(this, arguments);
+        }
+    };
+}
 
 function forEachAsync(data, iter, cbEnd) {
     cbEnd = cbEnd || cbNoop();
@@ -104,6 +129,56 @@ function isFilepath(s) {
 
 //-----------------------------------------------------
 
+function pump(src, dest, done) {
+    done = once(done || cbNoop);
+
+    src
+        .once("error", function(error) {
+            dest.destroy(error);
+        })
+        .once("end", function() {
+            src.destroy();
+            done(null, true);
+        })
+
+        .pipe(dest, pumpPipeOpts)
+
+        .once("abort", function() {
+            src.destroy();
+            done(null, false);
+        })
+        .once("error", function(error) {
+            src.destroy();
+            done(error, false);
+        });
+
+    return dest;
+}
+
+function wrapReqToPromise(getReq) {
+    let resolve,
+        reject;
+
+    //-------]>
+
+    const response = new Promise((res, rej) => { resolve = res, reject = rej; });
+    const request = getReq((v) => resolve(v), (v) => reject(v));
+
+    //------------]>
+
+    response.request = request;
+    response[Symbol.iterator] = function *() {
+        yield response;
+        yield request;
+    };
+
+    //------------]>
+
+    return response;
+}
+
+//-----------------------------------------------------
+
 function getFilenameFromStream(rs) {
     if(!isStream(rs)) {
         return "";
@@ -153,7 +228,7 @@ function getFileExtByMime(contentType) {
     }
 }
 
-function getWebContent(href, callback) {
+function getRequest(href, callback) {
     const u = url.parse(href);
     const options   = {
         "host": u.hostname,
@@ -174,10 +249,46 @@ function getWebContent(href, callback) {
         .on("response", callback);
 }
 
-//-----------------------------------------------------
+function getWebContent(href, callback, _attempts = 0) {
+    callback = once(callback || cbNoop);
 
-function cbNoop(error) {
-    if(error) {
-        throw error;
-    }
+    //----------]>
+
+    const req = getRequest(href, function(response) {
+        const {statusCode, headers} = response;
+
+        let error = null;
+
+        //-----]>
+
+        if(statusCode < 200 || statusCode > 399) {
+            error = new Error(`getWebContent | statusCode: ${statusCode}`);
+        }
+        else if(_attempts >= 5) {
+            error = new Error(`getWebContent | too long | attempts: ${_attempts}`);
+            error.code = "EWCLONGREDIRECT";
+        }
+        else {
+            const location = headers["location"];
+
+            if(location) {
+                req.abort();
+                getWebContent(location, callback, _attempts + 1);
+
+                return;
+            }
+        }
+
+        if(error) {
+            error.code = error.code || "EBADREQUEST";
+            req.abort();
+        }
+
+        //-----]>
+
+        callback(error, response);
+    }).on("error", function(error) {
+        req.abort();
+        callback(error, null);
+    });
 }

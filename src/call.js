@@ -20,6 +20,8 @@ const {
     isHttp,
     isFilepath,
 
+    pump,
+
     getFilenameFromStream,
     getFileExtByMime,
     getWebContent
@@ -28,8 +30,6 @@ const {
 //-----------------------------------------------------
 
 const reTgUri = /^(tg\+)?https?:\/\//;
-
-const mpPipeOpts = {"end": false};
 
 let mpBoundaryTmUp = 0,
     mpBoundaryKey, mpHeaderContentType,
@@ -59,7 +59,20 @@ function call(proxy, token, method, data, callback) {
 
     //------------]>
 
-    return request.call(proxy, token, method, onReqInit, callback);
+    const instance = request.call(proxy, token, method, onReqInit, function(...args) {
+        if(!instance.paused) {
+            callback.apply(callback, args);
+        }
+        else {
+            instance.once("resume", function() {
+                callback.apply(callback, args);
+            });
+        }
+    });
+
+    //------------]>
+
+    return instance;
 
     //------------]>
 
@@ -129,7 +142,7 @@ function call(proxy, token, method, data, callback) {
 
     //-------)>
 
-    function writeData(request, field, type, input, done) {
+    function writeData(request, field, type, input, cbDoneNT) {
         switch(type) {
             case "mediaGroup": {
                 if(Array.isArray(input) && input.length) {
@@ -198,7 +211,7 @@ function call(proxy, token, method, data, callback) {
             case "contact": {
                 if(isStream(input)) {
                     uncork(request);
-                    sendStreamData(input, request, done);
+                    bindStreamPause(input, request);
 
                     return;
                 }
@@ -235,64 +248,30 @@ function call(proxy, token, method, data, callback) {
 
                     //-----]>
 
-                    (function load() {
-                        const reqWc = getWebContent(input, function(response) {
+                    getWebContent(input, function(error, response) {
+                        if(!error) {
+                            const MAX_FILE_SIZE = 1024 * 1024 * 50;
+
                             const {statusCode, headers} = response;
 
-                            let error;
+                            const location = headers["location"];
+                            const contentLength = headers["content-length"] || 0;
 
-                            //-----]>
-
-                            load.attempts = load.attempts || 0;
-
-                            if(statusCode < 200 || statusCode > 399) {
-                                error = new Error(`getWebContent | statusCode: ${statusCode}`);
+                            if(contentLength > MAX_FILE_SIZE) {
+                                error = new Error(`getWebContent | maxSize: ${contentLength}`);
+                                error.code = "EWCMAXSIZE";
                             }
-                            else if(statusCode === 200 && load.attempts >= 5) {
-                                error = new Error(`getWebContent | too long | attempts: ${load.attempts}`);
-                                error.code = "EWCLONGREDIRECT";
-                            }
-                            else {
-                                const MAX_FILE_SIZE = 1024 * 1024 * 50;
+                        }
 
-                                const location = headers["location"];
-                                const contentLength = headers["content-length"] || 0;
-
-                                if(contentLength > MAX_FILE_SIZE) {
-                                    error = new Error(`getWebContent | maxSize: ${contentLength}`);
-                                    error.code = "EWCMAXSIZE";
-                                }
-                                else if(location) {
-                                    load.attempts++;
-                                    input = location;
-
-                                    reqWc.abort();
-                                    load();
-
-                                    return;
-                                }
-                            }
-
-                            //-----]>
-
-                            if(error) {
-                                error.code = error.code || "EBADREQUEST";
-                                error.response = response;
-
-                                reqWc.abort();
-                                request.destroy(error);
-                            }
-                            else {
-                                input = response;
-                                sendFile();
-                            }
-                        });
-
-                        reqWc.on("error", function(error) {
-                            reqWc.abort();
+                        if(error) {
+                            error.response = response;
                             request.destroy(error);
-                        });
-                    })();
+                        }
+                        else {
+                            input = response;
+                            sendFile();
+                        }
+                    });
                 }
                 else {
                     if(typeof(input) === "string" && !isFilepath(input)) {
@@ -315,6 +294,51 @@ function call(proxy, token, method, data, callback) {
         done();
 
         //-------------]>
+
+        function done() {
+            if(!instance.paused) {
+                cbDoneNT();
+            }
+            else {
+                instance.once("resume", function() {
+                    cbDoneNT();
+                });
+            }
+        }
+
+        function bindStreamPause(src, dest) {
+            const cbPause = function() {
+                src.pause();
+                src.unpipe(dest);
+            };
+
+            const cbResume = function() {
+                src.resume();
+                src.pipe(dest);
+            };
+
+            //-------]>
+
+            if(instance.paused) {
+                cbPause();
+            }
+
+            //-------]>
+
+            instance.on("pause", cbPause);
+            instance.on("resume", cbResume);
+
+            //-------]>
+
+            pump(src, dest, function(error, ended) {
+                instance.removeListener("pause", cbPause);
+                instance.removeListener("resume", cbResume);
+
+                if(ended) {
+                    cbDoneNT();
+                }
+            });
+        }
 
         function sendFile() {
             uncork(request);
@@ -343,7 +367,7 @@ function call(proxy, token, method, data, callback) {
                     request.write(makeFieldFile(field, fn));
                 }
 
-                sendStreamData(rs, request, done);
+                bindStreamPause(rs, request);
             }
         }
     }
@@ -381,25 +405,6 @@ function uncork(request, now) {
     }
 
     return request;
-}
-
-//-------------)>
-
-function sendStreamData(src, dest, done) {
-    src
-        .on("error", function(error) {
-            dest.destroy(error);
-        })
-        .on("end", done)
-
-        .pipe(dest, mpPipeOpts)
-
-        .once("abort", function() {
-            src.destroy();
-        })
-        .once("error", function() {
-            src.destroy();
-        });
 }
 
 //-------------)>

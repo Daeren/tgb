@@ -29,7 +29,7 @@ class Client extends Function {
         super();
 
         const func = function(method, data, proxy = func.proxy) {
-            return client(func.token, method, data, proxy)
+            return client(func.token, method, data, proxy);
         };
 
         Object.setPrototypeOf(func, new.target.prototype);
