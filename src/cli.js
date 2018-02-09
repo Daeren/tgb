@@ -74,8 +74,6 @@ const {
 
 const prettyJson = !!cmdOptions.j;
 
-console.log(cmdOptions);
-
 //-----------------------------------------------------
 
 void async function() {

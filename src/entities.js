@@ -33,18 +33,21 @@ function entities(message) {
     //---------]>
 
     const {text} = message;
-    const result = {
-        toString() { return JSON.stringify(result); }
-    };
+    const result = {};
 
     //---------]>
+
+    Object.defineProperty(result, "toString", {
+        "enumerable": false,
+        value() { return JSON.stringify(result); }
+    });
 
     entities.forEach(function({type, offset, length}) {
         const cmd = text.substring(offset, offset + length);
 
         result[type] = result[type] || [];
         result[type].push(cmd);
-    })
+    });
 
     //---------]>
 

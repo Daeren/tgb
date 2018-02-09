@@ -69,6 +69,7 @@ polling(
     });
 
 // > send: tg @gamebot /start x http://db.gg
+// https://core.telegram.org/bots/api#messageentity
 ```
 
 
