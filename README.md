@@ -21,6 +21,7 @@ await require("tgb").sendMessage("T", {chat_id: 0, text: "+"}, proxy)
 * [ReqPause](#refReqAbort): +
 * [TgUpload](#refTgUpload): +
 * [CLI](#refCLI): +
+* Entities: +
 * Redirect: +
 * HashTable, Array and [Map][10] as a data source: +
 * Without Dependencies: +
@@ -47,14 +48,14 @@ await require("tgb").sendMessage("T", {chat_id: 0, text: "+"}, proxy)
 const tgb = require("tgb");
 
 const bot = tgb(process.env.TELEGRAM_BOT_TOKEN);
-const {polling} = tgb;
+const {polling, entities} = tgb;
 
 //-----------------------------------------------------
 
 polling(
     bot.token,
     function({message}) {
-        bot.sendMessage([message.from.id, `Hi: ${message.text}`]);
+        bot.sendMessage([message.from.id, entities(message)]);
     })
     .catch(function(error) {
         if(error.code === bot.ERR_INVALID_TOKEN) {
@@ -66,6 +67,8 @@ polling(
             console.log(error);
         }
     });
+
+// > send: tg @gamebot /start x http://db.gg
 ```
 
 
