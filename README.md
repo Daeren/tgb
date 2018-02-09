@@ -15,7 +15,7 @@ await require("tgb").sendMessage("TK", {chat_id: 0, text: "+"}, proxy)
 [Full Bot API 3.5][3]
 
 * [Proxy](#refProxy): +
-* [File as Buffer](#refSendFileAsBuffer)
+* [File as Buffer](#refSendFileAsBuffer): +
 * [ReqAbort](#refReqAbort): +
 * [ReqPause](#refReqAbort): +
 * [TgUpload](#refTgUpload): +
@@ -69,6 +69,8 @@ polling(
 
 
 <a name="refProxy"></a>
+#### Proxy
+
 ```js
 const bot = tgb(process.env.TELEGRAM_BOT_TOKEN);
 const proxy = "127.0.0.1:1337"; // Only HTTPS
@@ -87,6 +89,8 @@ void async function () {
 
 
 <a name="refReqAbort"></a>
+#### Abort/Pause/Resume
+
 ```js
 const bot = tgb(process.env.TELEGRAM_BOT_TOKEN);
 
@@ -112,6 +116,8 @@ void async function () {
 
 
 <a name="refTgUpload"></a>
+#### Tg Upload
+
 ```js
 const bot = tgb(process.env.TELEGRAM_BOT_TOKEN);
 
@@ -149,6 +155,8 @@ void async function () {
 
 
 <a name="refSendFileAsBuffer"></a>
+#### File as Buffer
+
 ```js
 const fs = require("fs");
 const bot = tgb(process.env.TELEGRAM_BOT_TOKEN);
@@ -156,11 +164,11 @@ const bot = tgb(process.env.TELEGRAM_BOT_TOKEN);
 bot.sendMediaGroup({
     "chat_id": "59725308",
     "media": [
-        {"type": "photo","media": "AgADAgAD36gxGwWj2EuIQ9vvX_3kbh-cmg4ABDhqGLqV07c_phkBAAEC"},
-        {"type": "photo","media": "tg+https://avatars0.githubusercontent.com/u/5007624"},
         {"type": "photo","media": "O://test.jpg"},
         {"type": "photo","media": fs.createReadStream("O://test.jpg")},
         {"type": "photo","media": ["test.jpg", fs.readFileSync("O://test.jpg")]},
+        {"type": "photo","media": "AgADAgAD36gxGwWj2EuIQ9vvX_3kbh-cmg4ABDhqGLqV07c_phkBAAEC"},
+        {"type": "photo","media": "tg+https://avatars0.githubusercontent.com/u/5007624"},
         {"type": "photo","media": "https://avatars0.githubusercontent.com/u/5007624"},
     ]
 });
