@@ -7,19 +7,20 @@ git clone https://github.com/Daeren/tgb.git
 
 
 ```js
-await require("tgb")("TK", "sendmessage", [0, "+"], proxy)
-await require("tgb").sendMessage("TK", {chat_id: 0, text: "+"}, proxy)
+await require("tgb")("T", "sendmessage", [0, "+"], proxy)
+await require("tgb").sendMessage("T", {chat_id: 0, text: "+"}, proxy)
 ```
 
 
 [Full Bot API 3.5][3]
 
+* [Download](#refDownload): +
 * [Proxy](#refProxy): +
 * [File as Buffer](#refSendFileAsBuffer): +
 * [ReqAbort](#refReqAbort): +
 * [ReqPause](#refReqAbort): +
 * [TgUpload](#refTgUpload): +
-* [Download](#refDownload): +
+* [CLI](#refCLI): +
 * Redirect: +
 * HashTable, Array and [Map][10] as a data source: +
 * Without Dependencies: +
@@ -45,8 +46,8 @@ await require("tgb").sendMessage("TK", {chat_id: 0, text: "+"}, proxy)
 ```js
 const tgb = require("tgb");
 
-const {polling} = tgb;
 const bot = tgb(process.env.TELEGRAM_BOT_TOKEN);
+const {polling} = tgb;
 
 //-----------------------------------------------------
 
@@ -68,19 +69,37 @@ polling(
 ```
 
 
+<a name="refDownload"></a>
+#### Download
+
+```js
+const tgb = require("tgb");
+
+const bot = tgb(process.env.TELEGRAM_BOT_TOKEN);
+const {download} = tgb;
+
+const fileId = "AgADAgAD36gxGwWj2EuIQ9vvX_3kbh-cmg4ABDhqGLqV07c_phkBAAEC";
+
+//-----------------------------------------------------
+
+void async function () {
+    await download(bot.token, fileId);
+}();
+```
+
+
 <a name="refProxy"></a>
 #### Proxy
 
 ```js
 const bot = tgb(process.env.TELEGRAM_BOT_TOKEN);
-const proxy = "127.0.0.1:1337"; // Only HTTPS
-
-bot.proxy = proxy;
 
 void async function () {
+    bot.proxy = "127.0.0.1:1337"; // Only HTTPS
+
     try {
-        console.log(await bot.getMe());
-        console.log(await bot.getMe(null, "0.0.0.0:1337"));
+        await bot.getMe();
+        await bot.getMe(null, "0.0.0.0:1337");
     } catch(e) {
         console.log(e);
     }
@@ -92,10 +111,11 @@ void async function () {
 #### Abort/Pause/Resume
 
 ```js
-const bot = tgb(process.env.TELEGRAM_BOT_TOKEN);
-
 void async function () {
-    const [res, req] = bot.sendAudio({"chat_id": "0", "audio": "O://1.mp3"});
+    const bot = tgb(process.env.TELEGRAM_BOT_TOKEN);
+    const params = {"chat_id": "0", "audio": "O://1.mp3"};
+
+    const [res, req] = bot.sendAudio(params);
 
     setTimeout(() => {
         req.pause();
@@ -141,16 +161,17 @@ Files must be smaller than 5 MB for photos and smaller than 20 MB for all other 
 ```
 
 
-<a name="refDownload"></a>
+<a name="refCLI"></a>
+#### CLI
+
 ```js
-const tgb = require("tgb");
+> SET TELEGRAM_BOT_TOKEN=1:XXXX
 
-void async function () {
-    const bot = tgb(process.env.TELEGRAM_BOT_TOKEN);
-    const fileId = "AgADAgAD36gxGwWj2EuIQ9vvX_3kbh-cmg4ABDhqGLqV07c_phkBAAEC";
+> tgb-cli -j --method sendPhoto --d.chat_id 0 --d.photo "J://test.jpg"
+> tgb-cli --method getMe
 
-    console.log(await tgb.download(bot.token, fileId));
-}();
+> tgb-cli --method getMe --token 0:XXXX
+> tgb-cli --method getMe --token 0:XXXX --proxy "127.0.0.1:1337"
 ```
 
 
@@ -178,6 +199,34 @@ bot.sendMediaGroup({
 
 ```
 /*
+ tgb = require("tgb");
+
+-
+
+ tgb.polling(token, onMessage(data));
+ tgb.polling(token, options{limit, timeout, interval}, onMessage(data));
+
+ await tgb.download(token, fileId[, dir = "./", filename = ""]);
+
+-
+
+ x = tgb(token);
+ x.token;        // Read|Write
+ x.proxy;        // Read|Write
+
+ await x.method([data, proxy]);
+ await x(method[, data, proxy]);
+
+-
+
+ await tgb(token, method[, data, proxy]);
+
+ client = await tgb(token, method[, data, proxy]);
+ [client, request] = await tgb(token, method[, data, proxy]);
+ client.request === request;
+
+ ~~~
+
  error.code            = data.error_code;
  error.retryAfter      = data.parameters.retry_after;
  error.migrateToChatId = data.parameters.migrate_to_chat_id;

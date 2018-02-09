@@ -13,9 +13,9 @@ module.exports = polling;
 
 //-----------------------------------------------------
 
-function polling(token, options, onNewMessage) {
+function polling(token, options, onMessage) {
     if(typeof(options) === "function") {
-        onNewMessage = options;
+        onMessage = options;
         options = null;
     }
 
@@ -107,7 +107,7 @@ function polling(token, options, onNewMessage) {
                         id = d.update_id;
 
                         try {
-                            onNewMessage.call(instance, d);
+                            onMessage.call(instance, d);
                             options.offset = id + 1;
                         } catch(e) {
                             e.data = d;
