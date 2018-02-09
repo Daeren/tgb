@@ -14,15 +14,15 @@ await require("tgb").sendMessage("TK", {chat_id: 0, text: "+"}, proxy)
 
 [Full Bot API 3.5][3]
 
-* Without Dependencies: +
 * [Proxy](#refProxy): +
 * [File as Buffer](#refSendFileAsBuffer)
 * [ReqAbort](#refReqAbort): +
 * [ReqPause](#refReqAbort): +
 * [TgUpload](#refTgUpload): +
-* [Download](#refDownload)
+* [Download](#refDownload): +
 * Redirect: +
 * HashTable, Array and [Map][10] as a data source: +
+* Without Dependencies: +
 
 
 ```
@@ -166,7 +166,9 @@ bot.sendMediaGroup({
 });
 ```
 
+#### Misc
 
+```
 /*
  error.code            = data.error_code;
  error.retryAfter      = data.parameters.retry_after;
