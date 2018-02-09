@@ -14,6 +14,7 @@ await require("tgb").sendMessage("TK", {chat_id: 0, text: "+"}, proxy)
 
 [Full Bot API 3.5][3]
 
+* Without Dependencies: +
 * [Proxy](#refProxy): +
 * [File as Buffer](#refSendFileAsBuffer)
 * [ReqAbort](#refReqAbort): +

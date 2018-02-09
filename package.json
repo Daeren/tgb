@@ -16,7 +16,7 @@
         "email": "x@db.gg"
     },
     "bin": {
-        "tgb": "./bin/index.js"
+        "tgb-cli": "./bin/index.js"
     },
     "main": "./index",
     "scripts": {
