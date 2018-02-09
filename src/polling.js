@@ -29,22 +29,25 @@ function polling(token, options, onNewMessage) {
 
     //----------------]>
 
-    const tmInterval = Math.max(Math.trunc(options.interval) || 2, 2) * 1000;
+    const api = client(token);
+    const tmInterval = Math.max(Math.trunc(options.interval) || 2, 1) * 1000;
 
-    let tmPolling;
-    let stopped = false;
+    let tmPolling,
+
+        stopped = false,
+        tick = false;
 
     //----------------]>
 
-    process.nextTick(load);
+    runNextTick();
 
     //----------------]>
 
-    return {
+    const instance = {
         start() {
             if(stopped) {
                 stopped = false;
-                wait();
+                runNextTick();
             }
 
             return this;
@@ -54,34 +57,67 @@ function polling(token, options, onNewMessage) {
             clearTimeout(tmPolling);
 
             return this;
+        },
+        catch(callback) {
+            this._watchDog = callback;
+            return this;
         }
-    }
+    };
 
     //----------------]>
 
-    function wait() {
+    return instance;
+
+    //----------------]>
+
+    function runNextTick() {
+        if(!tick) {
+            tick = true;
+            process.nextTick(load);
+        }
+    }
+
+    function wait(moreSlowly) {
         if(!stopped) {
-            tmPolling = setTimeout(load, tmInterval);
+            tmPolling = setTimeout(load, tmInterval + (moreSlowly ? 3000 : 0));
         }
     }
 
     function load() {
+        tick = false;
+
         if(stopped) {
             return;
         }
 
-        client
-            .getUpdates(token, options)
+        api
+            .getUpdates(options)
             .then(function(data) {
                 if(stopped) {
                     return;
                 }
 
                 if(data.length > 0) {
-                    data.forEach((d) => {
-                        options.offset = d.update_id + 1;
-                        onNewMessage(d);
-                    });
+                    for(let id, d, i = 0, len = data.length; i < len; ++i) {
+                        if(stopped) {
+                            return;
+                        }
+
+                        d = data[i];
+                        id = d.update_id;
+
+                        try {
+                            onNewMessage.call(instance, d);
+                            options.offset = id + 1;
+                        } catch(e) {
+                            e.data = d;
+
+                            callWatchDog(e);
+                            wait(true);
+
+                            return;
+                        }
+                    }
 
                     load();
                 } else {
@@ -91,12 +127,28 @@ function polling(token, options, onNewMessage) {
             .catch(function(error) {
                 switch(error.code) {
                     case client.ERR_USED_WEBHOOK:
-                        client.deleteWebhook(token).then(load).catch(wait);
+                        api
+                            .deleteWebhook()
+                            .then(load)
+                            .catch(function(e) {
+                                e.context = error;
+
+                                callWatchDog(e);
+                                wait(true);
+                            });
+
                         break;
 
                     default:
-                        wait();
+                        callWatchDog(error);
+                        wait(true);
                 }
             });
+    }
+
+    function callWatchDog(error) {
+        if(instance._watchDog) {
+            instance._watchDog(error);
+        }
     }
 }

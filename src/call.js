@@ -9,7 +9,7 @@ const fs = require("fs");
 const path = require("path");
 
 const request = require("./request");
-const proto = require("./proto");
+const proto = Object.assign({}, require("./proto"));
 
 const {
     forEachAsync,
@@ -50,11 +50,11 @@ module.exports = call;
 
 function call(proxy, token, method, data, callback) {
     if(!token) {
-        throw new Error(`"token" was not specified`);
+        throw new Error("`token` was not specified");
     }
 
     if(!method) {
-        throw new Error(`"method" was not specified`);
+        throw new Error("`method` was not specified");
     }
 
     //------------]>
@@ -80,6 +80,11 @@ function call(proxy, token, method, data, callback) {
         const schema = proto[method] || proto[method.toLowerCase()];
 
         //-------]>
+
+        if(schema === null) {
+            request.end();
+            return;
+        }
 
         if(!schema) {
             request.destroy(new Error(`Unknown method: "${method}"`));
@@ -112,14 +117,12 @@ function call(proxy, token, method, data, callback) {
 
                 if(input == null) {
                     nextField();
-                    return;
                 }
-
-                //-------]>
-
-                cork(request);
-                request.write(makeFieldStr(field));
-                writeData(request, field, type, input, nextField);
+                else {
+                    cork(request);
+                    request.write(makeFieldStr(field));
+                    writeData(request, field, type, input, nextField);
+                }
             }
         })();
     }
@@ -408,7 +411,7 @@ function makeFieldStr(name) {
 
 function makeFieldStrValue(type, data) {
     switch(type) {
-        case "boolean": return data == 1 || data === "yes" || data === "ok" ? "1" : "0";
+        case "boolean": return data === true ||  data === 1 || data === "1" || data === "yes" || data === "ok" ? "1" : "0";
         case "string": return typeof(data) === "string" || Buffer.isBuffer(data) ? data : (data + "");
         case "json": return typeof(data) === "string" || Buffer.isBuffer(data) ? data : (JSON.stringify(data) || "");
 

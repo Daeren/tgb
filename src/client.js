@@ -10,15 +10,7 @@ const call = require("./call");
 
 //-----------------------------------------------------
 
-for(let [k, v] of Object.entries(proto)) {
-    client[k] = function(token, data, proxy) {
-        return client(token, k, data, proxy);
-    };
-}
-
-//-----------------------------------------------------
-
-module.exports = Object.assign(client, {
+const baseClient = {
     "ERR_INTERNAL_SERVER":      500,
     "ERR_NOT_FOUND":            400,
     "ERR_FORBIDDEN":            403,
@@ -27,10 +19,47 @@ module.exports = Object.assign(client, {
     "ERR_INVALID_TOKEN":        401,
 
     buffer,
-    json,
+    json
+};
 
-    proto
-});
+//-----------------------------------------------------
+
+class Client extends Function {
+    constructor(token) {
+        super();
+
+        const func = function(method, data, proxy = func.proxy) {
+            return client(func.token, method, data, proxy)
+        };
+
+        Object.setPrototypeOf(func, new.target.prototype);
+        func.token = token;
+
+        return func;
+    }
+}
+
+//-----------------------------------------------------
+
+for(let [k, v] of Object.entries(proto)) {
+    Client.prototype[k] = function(data, proxy = this.proxy) {
+        return client(this.token, k, data, proxy);
+    };
+
+    client[k] = function(token, data, proxy) {
+        return client(token, k, data, proxy);
+    };
+}
+
+for(let [k, v] of Object.entries(baseClient)) {
+    Client.prototype[k] = v;
+}
+
+//-----------------------------------------------------
+
+module.exports = Object.assign(function(token, method, data, proxy) {
+    return arguments.length === 1 ? new Client(token) : client(token, method, data, proxy);
+}, baseClient);
 
 //-----------------------------------------------------
 
@@ -45,8 +74,8 @@ function client(token, method, data, proxy) {
 
     //------------]>
 
-    request.request = request;
-    request[Symbol.iterator] = function* () {
+    response.request = request;
+    response[Symbol.iterator] = function *() {
         yield response;
         yield request;
     };

@@ -118,6 +118,7 @@ function getFilenameFromStream(rs) {
 
 function getFileExtByMime(contentType) {
     switch(contentType) {
+        case "text/plain": return ".txt";
         case "text/html": return ".html";
         case "text/javascript": return ".js";
 
@@ -126,6 +127,7 @@ function getFileExtByMime(contentType) {
         case "application/gzip": return ".gz";
         case "application/x-rar-compressed": return ".rar";
 
+        case "image/bmp": return ".bmp";
         case "image/gif": return ".gif";
         case "image/webp": return ".webp";
         case "image/jpeg": return ".jpg";
@@ -137,8 +139,9 @@ function getFileExtByMime(contentType) {
 
         case "audio/ogg": return ".ogg";
         case "audio/mp4": return ".m4a";
+        case "audio/wav": return ".wav";
+        case "audio/webm": return ".weba";
 
-        case "audio/mpeg":
         case "audio/MPA":
         case "audio/mpa-robust":
         case "audio/mpeg":
