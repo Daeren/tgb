@@ -239,6 +239,16 @@ function call(proxy, token, method, data, callback) {
             case "voice":
             case "video_note":
             case "certificate": {
+                let filename;
+
+                //--------]>
+
+                if(Array.isArray(input)) {
+                    [filename, input] = input;
+                }
+
+                //--------]>
+
                 const isUri = input && typeof(input) === "string" ? input.match(reTgUri) : null;
                 const proto = isUri && isUri[0];
                 const useTgUp = isUri && isUri[1];
@@ -278,7 +288,7 @@ function call(proxy, token, method, data, callback) {
                         }
                         else {
                             input = response;
-                            sendFile();
+                            sendFile(filename);
                         }
                     });
                 }
@@ -288,7 +298,7 @@ function call(proxy, token, method, data, callback) {
                         break;
                     }
 
-                    sendFile();
+                    sendFile(filename);
                 }
 
                 //--------]>
@@ -349,23 +359,21 @@ function call(proxy, token, method, data, callback) {
             });
         }
 
-        function sendFile() {
+        function sendFile(filename) {
             uncork(request);
 
             //-------]>
 
-            if(Array.isArray(input)) {
-                const [filename, buf] = input;
-
+            if(Buffer.isBuffer(input)) {
                 request.write(makeFieldFile(field, filename));
-                request.write(buf);
+                request.write(input);
 
                 done();
             }
             else {
                 const own = !isStream(input);
                 const rs = own ? fs.createReadStream(input) : input;
-                const fn = getFilenameFromStream(rs);
+                const fn = filename || getFilenameFromStream(rs);
 
                 if(own) {
                     rs.on("open", function(error) {
