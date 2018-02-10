@@ -309,7 +309,7 @@ bot.sendMediaGroup({
 -
 
  tgb.buffer(proxy, token, method, data, callback(error, buf, res))
- tgb.json(proxy, token, method, data, callback(error, buf, res))
+ tgb.json(proxy, token, method, data, callback(error, json, res))
 
 -
 
@@ -323,17 +323,19 @@ bot.sendMediaGroup({
  x = tgb(token);
  x.token;        // Read|Write
  x.proxy;        // Read|Write
+ x.url;          // Read (webhook.bind)
 
  await x.method([data, proxy]);
  await x(method[, data, proxy]);
 
 -
 
- await tgb(token, method[, data, proxy]);
-
  client = await tgb(token, method[, data, proxy]);
- [client, request] = await tgb(token, method[, data, proxy]);
+
+ [client, request] = tgb(token, method[, data, proxy]);
  client.request === request;
+ request.pause();
+ await client;
 
  ~~~
 
