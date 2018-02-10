@@ -141,20 +141,23 @@ function pump(src, dest, done) {
         .once("error", function(error) {
             dest.destroy(error);
         })
-        .once("end", function() {
+        .once("close", function() {
             src.destroy();
-            done(null, true);
+            done(null, false, true);
+        })
+        .once("end", function() {
+            done(null, true, false);
         })
 
         .pipe(dest, pumpPipeOpts)
 
         .once("abort", function() {
             src.destroy();
-            done(null, false);
+            done(null, false, false);
         })
         .once("error", function(error) {
             src.destroy();
-            done(error, false);
+            done(error, false, false);
         });
 
     return dest;

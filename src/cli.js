@@ -19,7 +19,7 @@ const cmdOptions = {};
 //-----------------------------------------------------
 
 (function() {
-    let key, name;
+    let key;
 
     //------------]>
 
@@ -35,15 +35,7 @@ const cmdOptions = {};
                 setOpt(key, true);
             }
 
-            key = null;
-            name = arg.replace(/^-+/, "");
-
-            if(arg[1] === "-") {
-                key = name;
-            }
-            else {
-                setOpt(name, true);
-            }
+            key = arg.replace(/^-+/, "");
         }
         else if(key) {
             setOpt(key, arg);

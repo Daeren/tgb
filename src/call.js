@@ -349,12 +349,15 @@ function call(proxy, token, method, data, callback) {
 
             //-------]>
 
-            pump(src, dest, function(error, ended) {
+            pump(src, dest, function(error, finished, closed) {
                 instance.removeListener("pause", cbPause);
                 instance.removeListener("resume", cbResume);
 
-                if(ended) {
+                if(finished) {
                     cbDoneNT();
+                }
+                else if(closed) {
+                    request.destroy(new Error("The stream was closed before all expected data was received"));
                 }
             });
         }
@@ -396,7 +399,7 @@ function cork(request) {
     if(!request.corked) {
         const sk = request.socket;
 
-        if(sk) {
+        if(sk && !sk.destroyed) {
             sk.cork();
             request.corked = true;
         }
@@ -407,15 +410,19 @@ function cork(request) {
 
 function uncork(request, now) {
     if(request.corked) {
-        const sk = request.socket;
+        const unc = () => {
+            const sk = request.socket;
 
-        if(now) {
-            if(sk) {
+            if(sk && !sk.destroyed) {
                 sk.uncork();
             }
+        };
+
+        if(now) {
+            unc();
         }
         else {
-            process.nextTick(() => sk && sk.uncork());
+            process.nextTick(unc);
         }
 
         request.corked = false;

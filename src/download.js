@@ -44,9 +44,12 @@ function download(token, fileId, dir = "./", filename = "") {
                     else {
                         const ws = fs.createWriteStream(filepath);
 
-                        pump(response, ws, function(error, ended) {
+                        pump(response, ws, function(error, finished, closed) {
                             if(error) {
                                 reject(error);
+                            }
+                            else if(!finished) {
+                                reject(new Error("The stream was closed before all expected data was received"));
                             }
                             else {
                                 ws.end(function() {

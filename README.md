@@ -137,7 +137,7 @@ const fileId = "AgADAgAD36gxGwWj2EuIQ9vvX_3kbh-cmg4ABDhqGLqV07c_phkBAAEC";
 
 //-----------------------------------------------------
 
-void async function () {
+void async function() {
     await download(bot.token, fileId);
 }();
 
@@ -151,7 +151,7 @@ void async function () {
 ```js
 const bot = tgb(process.env.TELEGRAM_BOT_TOKEN);
 
-void async function () {
+void async function() {
     bot.proxy = "127.0.0.1:1337"; // Only HTTPS
 
     try {
@@ -168,7 +168,7 @@ void async function () {
 #### Abort/Pause/Resume
 
 ```js
-void async function () {
+void async function() {
     const bot = tgb(process.env.TELEGRAM_BOT_TOKEN);
     const params = {"chat_id": "0", "audio": "O://1.mp3"};
 
