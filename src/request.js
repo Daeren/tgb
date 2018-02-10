@@ -78,9 +78,13 @@ class Request extends events {
 
 
     abort() {
-        this.__destroy();
-        this.__aborted = true;
-        this.emit("abort");
+        if(!this.__aborted) {
+            this.__destroy();
+            this.__aborted = true;
+            this.__pause = false;
+
+            this.emit("abort");
+        }
     }
 
     resume() {
@@ -91,8 +95,10 @@ class Request extends events {
     }
 
     pause() {
-        this.__pause = true;
-        this.emit("pause");
+        if(!this.aborted) {
+            this.__pause = true;
+            this.emit("pause");
+        }
     }
 }
 
@@ -192,6 +198,7 @@ function call(proxy, token, method, cbInit, cbResult) {
         //--------]>
 
         response
+            .on("aborted", obAbort)
             .on("error", onResponseError)
             .on("data", onResponseData)
             .on("end", onResponseEnd);
