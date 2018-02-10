@@ -1,4 +1,6 @@
 [![Codacy][cod_b]][cod_l]
+[![Bot API](https://img.shields.io/badge/Bot%20API-v.3.5-blue.svg)](https://core.telegram.org/bots/api)
+
 
 ```
 npm -g install tgb
@@ -15,8 +17,6 @@ await require("tgb").sendMessage("T", {chat_id: 0, text: "+"}, proxy)
 > tgb-cli --polling TOKEN --echo -j
 ```
 
-
-[Full Bot API 3.5][3]
 
 * [WebHook](#refWebHook): +
 * [Download](#refDownload): +
@@ -41,13 +41,6 @@ await require("tgb").sendMessage("T", {chat_id: 0, text: "+"}, proxy)
 - photo|audio|voice|video|document|sticker|video_note: buffer, stream, path, url, file_id
 - certificate:                                         buffer, stream, path, url
 ```
-
-
-#### Goals:
-1. High stability;
-2. Low memory usage;
-3. Maximum performance;
-4. Flexibility.
 
 
 ```js
@@ -101,8 +94,7 @@ void async function HTTPS() {
             "key": "./db.gg.key",
             "cert": "./db.gg.crt"
         }
-    })).catch(function(error) { // srv|cl errors
-    });
+    })).catch(function(error) {});  // srv|cl errors
 
     const url = await wh.bind(bot, "db.gg", function({message}, bot) {
         this.sendMessage([message.from.id, `Hi: ${message.text}`]);
@@ -114,7 +106,7 @@ void async function HTTPS() {
 // wh = await webhook({host: "localhost", port: 1490});
 
 // url = await wh.bind(otherBot, "666.io:88", cb); // with api.setWebhook
-// wh = wh.set(otherBot2, "666.io:88", cb);        // without api.setWebhook
+// wh = wh.set(otherBot2, url, cb);                // without api.setWebhook
 
 // url = await wh.unbind(otherBot);                // with api.deleteWebhook
 // wh = wh.delete(otherBot2);                      // without api.deleteWebhook
@@ -148,6 +140,8 @@ const fileId = "AgADAgAD36gxGwWj2EuIQ9vvX_3kbh-cmg4ABDhqGLqV07c_phkBAAEC";
 void async function () {
     await download(bot.token, fileId);
 }();
+
+// https://core.telegram.org/bots/api#file
 ```
 
 
@@ -216,11 +210,7 @@ bot.sendPhoto({
     "photo": "tg+https://avatars0.githubusercontent.com/u/5007624"
 });
 
-/*
-Added the option to specify an HTTP URL for a file in all methods where InputFile or file_id can be used (except voice messages).
-Telegram will get the file from the specified URL and send it to the user.
-Files must be smaller than 5 MB for photos and smaller than 20 MB for all other types of content.
-*/
+// https://core.telegram.org/bots/api#sending-files
 ```
 
 
@@ -235,7 +225,7 @@ const {markup} = tgb;
 bot.sendMessage(markup({
     "chat_id": "0",
     "text": "Hi"
-}).keyboard(`A a|  B b  |C c\n X `));
+}).keyboard(`A|B|C\nX|Y\nO`));
 
 // Remove
 bot.sendMessage(markup({
@@ -290,26 +280,6 @@ console.log(await res);
 ```
 
 
-<a name="refCLI"></a>
-#### CLI
-
-```js
-> SET TELEGRAM_BOT_TOKEN=1:XXXX
-
-> tgb-cli -j --method sendPhoto --d.chat_id 0 --d.photo "J://test.jpg"
-> tgb-cli --method getMe
-
-> tgb-cli --method getMe --token 0:XXXX
-> tgb-cli --method getMe --token 0:XXXX --proxy "127.0.0.1:1337"
-
-> tgb-cli --method sendMessage --data "{\"chat_id\":0,\"text\":\"Hi yo\"}"
-> tgb-cli --method sendMessage --d.chat_id 1 --data "{\"chat_id\":0,\"text\":\"Hi yo\"}"
-
-> tgb-cli --download TOKEN --name x --id "AgADAgAD36gxGwWj2EuIQ9vvX_3kbh-cmg4ABDhqGLqV07c_phkBAAEC"
-> tgb-cli --download --dir "./temp/" --id "AgADAgAD36gxGwWj2EuIQ9vvX_3kbh-cmg4ABDhqGLqV07c_phkBAAEC"
-```
-
-
 <a name="refSendFileAsBuffer"></a>
 #### File as Buffer
 
@@ -329,6 +299,27 @@ bot.sendMediaGroup({
     ]
 });
 ```
+
+
+<a name="refCLI"></a>
+#### CLI
+
+```js
+> SET TELEGRAM_BOT_TOKEN=1:XXXX
+
+> tgb-cli --method sendPhoto --d.chat_id 0 --d.photo "J://test.jpg"
+> tgb-cli --method getMe -j
+
+> tgb-cli --method getMe --token 0:XXXX
+> tgb-cli --method getMe --token 0:XXXX --proxy "127.0.0.1:1337"
+
+> tgb-cli --method sendMessage --data "{\"chat_id\":0,\"text\":\"Hi yo\"}"
+> tgb-cli --method sendMessage --d.chat_id 1 --data "{\"chat_id\":0,\"text\":\"Hi yo\"}"
+
+> tgb-cli --download TOKEN --name x --id "AgADAgAD36gxGwWj2EuIQ9vvX_3kbh-cmg4ABDhqGLqV07c_phkBAAEC"
+> tgb-cli --download --dir "./temp/" --id "AgADAgAD36gxGwWj2EuIQ9vvX_3kbh-cmg4ABDhqGLqV07c_phkBAAEC"
+```
+
 
 #### Misc
 
@@ -401,6 +392,13 @@ bot.sendMediaGroup({
 
 
 Me? Him? Me? You? Me? ... Him? Me ... `npm -g i tgb` .... Whaat is Love  ♫•*¨*•.¸¸♪
+
+
+#### Goals:
+1. High stability;
+2. Low memory usage;
+3. Maximum performance;
+4. Flexibility.
 
 
 ## License
