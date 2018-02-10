@@ -59,7 +59,7 @@ for(let [k, v] of Object.entries(baseClient)) {
 
 module.exports = Object.assign(function(token, method, data, proxy) {
     return arguments.length === 1 ? new Client(token) : client(token, method, data, proxy);
-}, baseClient);
+}, baseClient, {Client});
 
 //-----------------------------------------------------
 

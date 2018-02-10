@@ -25,6 +25,7 @@ await require("tgb").sendMessage("T", {chat_id: 0, text: "+"}, proxy)
 * [Abort/Pause](#refReqAbort): +
 * [TgUpload](#refTgUpload): +
 * [Markup](#refMarkup): +
+* [Extensibility](#refExtensibility): +
 * [CLI](#refCLI): +
 * Entities: +
 * Redirect: +
@@ -257,6 +258,35 @@ bot.sendMessage(markup({
 // markup.forceReply([selective = false])
 
 // https://core.telegram.org/bots/api#replykeyboardmarkup
+```
+
+
+<a name="refExtensibility"></a>
+#### Extensibility
+
+```js
+const tgb = require("tgb");
+const {Client} = tgb;
+
+class MyBot extends Client {
+    constructor(token, msg) {
+        super(token);
+        this.msg = msg;
+    }
+
+    send(id) {
+        return this.sendMessage([id, this.msg]);
+    }
+
+    sendMessage([cid, text]) {
+        return super.sendMessage([cid, `watch?${text}`]);
+    }
+}
+
+const bot = new MyBot(process.env.TELEGRAM_BOT_TOKEN, "v=vc-PJPrueXY");
+const [res, req] = bot.send("0");
+
+console.log(await res);
 ```
 
 
