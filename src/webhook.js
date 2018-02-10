@@ -163,6 +163,18 @@ function webhook(port, options) {
                         })
                         .catch(reject);
                 });
+            },
+
+
+            close() {
+                return new Promise((resolve, reject) => {
+                    if(srv) {
+                        srv.close((e) => e ? reject(e) : (this._bots.clear(), resolve()));
+                    }
+                    else {
+                        reject(new Error("Not running"));
+                    }
+                });
             }
         });
 

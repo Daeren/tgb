@@ -118,6 +118,8 @@ void async function HTTPS() {
 // url = await wh.unbind(otherBot);                // with api.deleteWebhook
 // wh = wh.delete(otherBot2);                      // without api.deleteWebhook
 
+// await wh.close();
+
 
 // wh.bind(bot, options[url|objOpt.setWebhook], onMessage)
 // wh.unbind(bot)
