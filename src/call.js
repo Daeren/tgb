@@ -49,11 +49,11 @@ module.exports = call;
 //-----------------------------------------------------
 
 function call(proxy, token, method, data, callback) {
-    if(!token) {
+    if(!token || typeof(token) !== "string") {
         throw new Error("`token` was not specified");
     }
 
-    if(!method) {
+    if(!method || typeof(method) !== "string") {
         throw new Error("`method` was not specified");
     }
 

@@ -11,6 +11,10 @@ await require("tgb")("T", "sendmessage", [0, "+"], proxy)
 await require("tgb").sendMessage("T", {chat_id: 0, text: "+"}, proxy)
 ```
 
+```
+> tgb-cli --polling TOKEN --echo -j
+```
+
 
 [Full Bot API 3.5][3]
 
@@ -179,6 +183,9 @@ Files must be smaller than 5 MB for photos and smaller than 20 MB for all other 
 
 > tgb-cli --method sendMessage --data "{\"chat_id\":0,\"text\":\"Hi yo\"}"
 > tgb-cli --method sendMessage --d.chat_id 1 --data "{\"chat_id\":0,\"text\":\"Hi yo\"}"
+
+> tgb-cli --download TOKEN --name x --id "AgADAgAD36gxGwWj2EuIQ9vvX_3kbh-cmg4ABDhqGLqV07c_phkBAAEC"
+> tgb-cli --download --dir "./temp/" --id "AgADAgAD36gxGwWj2EuIQ9vvX_3kbh-cmg4ABDhqGLqV07c_phkBAAEC"
 ```
 
 

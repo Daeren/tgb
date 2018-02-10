@@ -6,6 +6,8 @@
 //-----------------------------------------------------
 
 const client = require("./client");
+const polling = require("./polling");
+const download = require("./download");
 
 //-----------------------------------------------------
 
@@ -29,6 +31,10 @@ const cmdOptions = {};
         //---------]>
 
         if(arg[0] === "-") {
+            if(key) {
+                setOpt(key, true);
+            }
+
             key = null;
             name = arg.replace(/^-+/, "");
 
@@ -44,6 +50,12 @@ const cmdOptions = {};
             key = null;
         }
     });
+
+    if(key) {
+        setOpt(key, true);
+    }
+
+    //------------]>
 
     function setOpt(k, v) {
         const t = k.split(/^d\./);
@@ -78,13 +90,57 @@ const prettyJson = !!cmdOptions.j;
 
 void async function() {
     try {
-        let response = await client(token, method, data, proxy);
-        response = JSON.stringify(response || "", null, prettyJson ? "  " : null);
+        if(cmdOptions.polling) {
+            const t = cmdOptions.polling === true ? token : cmdOptions.polling;
+            const {echo} = cmdOptions;
 
-        process.stdout.write(response);
+            polling(t, async function(data) {
+                printJson(data);
+
+                if(echo) {
+                    const chat_id = data.message.from.id;
+                    const text = formatJson(data);
+
+                    printJson(await client(t, "sendMessage", {chat_id, text}));
+                }
+            }).catch(function(error) {
+                this.stop();
+
+                delete error.response;
+                printError(error);
+            });
+        }
+        else if(cmdOptions.download) {
+            const t = cmdOptions.download === true ? token : cmdOptions.download;
+
+            const {
+                id, dir, name
+            } = cmdOptions;
+
+            printJson(await download(t, id, dir, name));
+        }
+        else {
+            printJson(await client(token, method, data, proxy));
+        }
     }
     catch(e) {
-        process.stderr.write(e.message);
-        process.stderr.write(e.stack);
+        printError(e);
     }
 }();
+
+//-----------------------------------------------------
+
+function printJson(data) {
+    process.stdout.write(formatJson(data) + "\r\n");
+}
+
+function printError(error) {
+    process.stderr.write(error.message);
+    process.stderr.write("\r\n");
+    process.stderr.write(error.stack);
+    process.stderr.write("\r\n");
+}
+
+function formatJson(data) {
+    return JSON.stringify(data || "", null, prettyJson ? "  " : null);
+}
