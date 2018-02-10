@@ -21,9 +21,9 @@ await require("tgb").sendMessage("T", {chat_id: 0, text: "+"}, proxy)
 * [Download](#refDownload): +
 * [Proxy](#refProxy): +
 * [File as Buffer](#refSendFileAsBuffer): +
-* [ReqAbort](#refReqAbort): +
-* [ReqPause](#refReqAbort): +
+* [Abort/Pause](#refReqAbort): +
 * [TgUpload](#refTgUpload): +
+* [Markup](#refMarkup): +
 * [CLI](#refCLI): +
 * Entities: +
 * Redirect: +
@@ -72,7 +72,7 @@ polling(
         }
     });
 
-// > send: tg @gamebot /start x http://db.gg
+// send: tg @gamebot /start x http://db.gg
 // https://core.telegram.org/bots/api#messageentity
 ```
 
@@ -169,6 +169,38 @@ Files must be smaller than 5 MB for photos and smaller than 20 MB for all other 
 ```
 
 
+<a name="refMarkup"></a>
+#### Markup
+
+```js
+const bot = tgb(process.env.TELEGRAM_BOT_TOKEN);
+const {markup} = tgb;
+
+// Set
+bot.sendMessage(markup({
+    "chat_id": "0",
+    "text": "Hi"
+}).keyboard(`A a|  B b  |C c\n X `));
+
+// Remove
+bot.sendMessage(markup({
+    "chat_id": "0",
+    "text": "Hi"
+}).keyboard()); // .removeKeyboard()
+
+// Reply
+bot.sendMessage(markup({
+    "chat_id": "0",
+    "text": "Hi"
+}).reply()); // .forceReply()
+
+
+// keyboard(kb, oneTime[, resize = true, selective = false])
+// removeKeyboard([selective = false])
+// forceReply([selective = false])
+```
+
+
 <a name="refCLI"></a>
 #### CLI
 
@@ -245,6 +277,9 @@ bot.sendMediaGroup({
  client.request === request;
 
  ~~~
+
+ error.response        = response;
+ error.data            = data;
 
  error.code            = data.error_code;
  error.retryAfter      = data.parameters.retry_after;

@@ -98,10 +98,10 @@ void async function() {
                 printJson(data);
 
                 if(echo) {
-                    const chat_id = data.message.from.id;
-                    const text = formatJson(data);
-
-                    printJson(await client(t, "sendMessage", {chat_id, text}));
+                    printJson(await client(t, "sendMessage", {
+                        "chat_id": data.message.from.id,
+                        "text": formatJson(data)
+                    }));
                 }
             }).catch(function(error) {
                 this.stop();
