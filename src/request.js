@@ -64,25 +64,30 @@ class Request extends events {
     get ended() { return this.__ended || false; }
 
 
+    __destroy() {
+        if(this.__req) {
+            this.__req.abort();
+            this.__req = null;
+        }
+
+        if(this.__tunReq) {
+            this.__tunReq.abort();
+            this.__tunReq = null;
+        }
+    }
+
+
     abort() {
+        this.__destroy();
         this.__aborted = true;
-
-        if(req) {
-            req.abort();
-            req = null;
-        }
-
-        if(tunReq) {
-            tunReq.abort();
-            tunReq = null;
-        }
-
         this.emit("abort");
     }
 
     resume() {
-        this.__pause = false;
-        this.emit("resume");
+        if(!this.aborted) {
+            this.__pause = false;
+            this.emit("resume");
+        }
     }
 
     pause() {
@@ -102,10 +107,6 @@ module.exports = {
 
 function call(proxy, token, method, cbInit, cbResult) {
     const path = `/bot${token}/${method}`;
-
-    let tunReq,
-        req;
-
     const instance = createCallInstance();
 
     //--------------]>
@@ -130,16 +131,14 @@ function call(proxy, token, method, cbInit, cbResult) {
 
         //-------]>
 
-        tunReq = tunRequest(reqProxyTunOptions, function(response, socket) {
+        instance.__tunReq = tunRequest(reqProxyTunOptions, function(response, socket) {
             const statusCode = response.statusCode;
 
             if(statusCode === 200) {
                 reqProxyOptions.path = path;
                 reqProxyOptions.socket = socket;
 
-                req = httpsRequest(reqProxyOptions);
-
-                process.nextTick(cbInit, req);
+                process.nextTick(cbInit, instance.__req = httpsRequest(reqProxyOptions));
             }
             else {
                 const e = new Error(`Proxy | connect.statusCode: ${statusCode}`);
@@ -152,9 +151,7 @@ function call(proxy, token, method, cbInit, cbResult) {
     }
     else {
         reqOptions.path = path;
-        req = httpsRequest(reqOptions);
-
-        process.nextTick(cbInit, req);
+        process.nextTick(cbInit, instance.__req = httpsRequest(reqOptions));
     }
 
     //--------------]>
@@ -223,16 +220,7 @@ function call(proxy, token, method, cbInit, cbResult) {
     }
 
     function onError(error) {
-        if(req) {
-            req.destroy();
-            req = null;
-        }
-
-        if(tunReq) {
-            tunReq.destroy();
-            tunReq = null;
-        }
-
+        instance.__destroy();
         cbResult(error, null, null);
     }
 
@@ -241,7 +229,7 @@ function call(proxy, token, method, cbInit, cbResult) {
     }
 
     function obAbort() {
-        instance.__aborted = true;
+        instance.abort();
         cbResult(null, null, null);
     }
 }

@@ -73,7 +73,7 @@ function forceReply(selective) {
     return {
         "force_reply": true,
         selective
-    }
+    };
 }
 
 //-----------------------------------------------------

@@ -29,7 +29,7 @@ module.exports = webhook;
 function webhook(port, options) {
     if(port && typeof(port) === "object") {
         options = port;
-        port = null
+        port = null;
     }
 
     options = Object.assign({}, options || {});

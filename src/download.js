@@ -45,8 +45,6 @@ function download(token, fileId, dir = "./", filename = "") {
                         const ws = fs.createWriteStream(filepath);
 
                         pump(response, ws, function(error, ended) {
-                            console.log(error, ended);
-
                             if(error) {
                                 reject(error);
                             }

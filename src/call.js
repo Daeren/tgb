@@ -60,7 +60,7 @@ function call(proxy, token, method, data, callback) {
     //------------]>
 
     const instance = request.call(proxy, token, method, onReqInit, function(...args) {
-        if(!instance.paused) {
+        if(!instance.paused || instance.aborted) {
             callback.apply(callback, args);
         }
         else {
