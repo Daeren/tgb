@@ -31,6 +31,7 @@ module.exports = {
     isRequestStream,
     isResponseStream,
     isHttp,
+    isHttps,
     isFilepath,
 
     pump,
@@ -121,6 +122,10 @@ function isResponseStream(stream) {
 
 function isHttp(s) {
     return s && typeof(s) === "string" ? !reIsHttps.test(s) : false;
+}
+
+function isHttps(s) {
+    return s && typeof(s) === "string" ? reIsHttps.test(s) : false;
 }
 
 function isFilepath(s) {

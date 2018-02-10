@@ -45,7 +45,7 @@ for(let [k, v] of Object.entries(baseMarkup)) {
 
 module.exports = Object.assign(function(message) {
     if(!message || typeof(message) !== "object" || Array.isArray(message)) {
-        throw new TypeError("`message` is not an object/map")
+        throw new TypeError("`message` is not an object/map");
     }
 
     return new Markup(message);
@@ -55,7 +55,7 @@ module.exports = Object.assign(function(message) {
 
 function keyboard(kb, oneTime, resize = true, selective = false) {
     return !kb ? removeKeyboard(selective) : {
-        "keyboard": parseTextKb(kb),
+        "keyboard": typeof(kb) === "string" ? parseTextKb(kb) : kb,
         "resize_keyboard": resize,
         "one_time_keyboard": oneTime,
         selective
@@ -66,7 +66,7 @@ function removeKeyboard(selective) {
     return {
         "remove_keyboard": true,
         selective
-    }
+    };
 }
 
 function forceReply(selective) {
@@ -91,7 +91,7 @@ function parseTextKb(kb) {
             row
                 .split(/\|/g)
                 .forEach(function(column, j) {
-                    ct.push({"text": column})
+                    ct.push({"text": column});
                 });
 
             rt.push(ct);

@@ -6,6 +6,7 @@
 //-----------------------------------------------------
 
 const client = require("./client");
+const baseSrv = require("./internal/baseSrv");
 
 //-----------------------------------------------------
 
@@ -29,7 +30,7 @@ function polling(token, options, onMessage) {
 
     //----------------]>
 
-    const api = client(token);
+    const bot = client(token);
     const tmInterval = Math.max(Math.trunc(options.interval) || 2, 1) * 1000;
 
     let tmPolling,
@@ -43,7 +44,7 @@ function polling(token, options, onMessage) {
 
     //----------------]>
 
-    const instance = {
+    const instance = baseSrv({
         start() {
             if(stopped) {
                 stopped = false;
@@ -57,12 +58,8 @@ function polling(token, options, onMessage) {
             clearTimeout(tmPolling);
 
             return this;
-        },
-        catch(callback) {
-            this._watchDog = callback;
-            return this;
         }
-    };
+    });
 
     //----------------]>
 
@@ -90,7 +87,7 @@ function polling(token, options, onMessage) {
             return;
         }
 
-        api
+        bot
             .getUpdates(options)
             .then(function(data) {
                 if(stopped) {
@@ -127,7 +124,7 @@ function polling(token, options, onMessage) {
             .catch(function(error) {
                 switch(error.code) {
                     case client.ERR_USED_WEBHOOK:
-                        api
+                        bot
                             .deleteWebhook()
                             .then(load)
                             .catch(function(e) {
@@ -147,8 +144,6 @@ function polling(token, options, onMessage) {
     }
 
     function callWatchDog(error) {
-        if(instance._watchDog) {
-            instance._watchDog(error);
-        }
+        instance._watchDog(error);
     }
 }

@@ -7,6 +7,7 @@
 
 const client = require("./client");
 
+const webhook = require("./webhook");
 const polling = require("./polling");
 const download = require("./download");
 const entities = require("./entities");
@@ -14,6 +15,7 @@ const markup = require("./markup");
 
 //-----------------------------------------------------
 
+client.webhook = webhook;
 client.polling = polling;
 client.download = download;
 client.entities = entities;

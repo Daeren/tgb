@@ -18,6 +18,7 @@ await require("tgb").sendMessage("T", {chat_id: 0, text: "+"}, proxy)
 
 [Full Bot API 3.5][3]
 
+* [WebHook](#refWebHook): +
 * [Download](#refDownload): +
 * [Proxy](#refProxy): +
 * [File as Buffer](#refSendFileAsBuffer): +
@@ -63,7 +64,7 @@ polling(
     })
     .catch(function(error) {
         if(error.code === bot.ERR_INVALID_TOKEN) {
-            this.stop();
+            this.stop(); // ~ this.start()
             console.log("There's a problem with the token...");
         }
         else {
@@ -74,6 +75,57 @@ polling(
 
 // send: tg @gamebot /start x http://db.gg
 // https://core.telegram.org/bots/api#messageentity
+```
+
+
+<a name="refWebHook"></a>
+#### WebHook
+
+```js
+const tgb = require("tgb");
+
+const bot = tgb(process.env.TELEGRAM_BOT_TOKEN);
+const {webhook} = tgb;
+
+//-----------------------------------------------------
+
+void async function NGINX() {
+    const wh = await webhook({host: "localhost", port: 1490});
+    const url = await wh.bind(bot, "db.gg:88/custom", ({message}) => {});
+}();
+
+void async function HTTPS() {
+    const wh = (await webhook(8443, {
+        "ssl": {
+            "key": "./db.gg.key",
+            "cert": "./db.gg.crt"
+        }
+    })).catch(function(error) { // srv|cl errors
+    });
+
+    const url = await wh.bind(bot, "db.gg", function({message}, bot) {
+        this.sendMessage([message.from.id, `Hi: ${message.text}`]);
+    });
+}();
+
+
+// wh = await webhook(1490); // *:1490
+// wh = await webhook({host: "localhost", port: 1490});
+
+// url = await wh.bind(otherBot, "666.io:88", cb); // with api.setWebhook
+// wh = wh.set(otherBot2, "666.io:88", cb);        // without api.setWebhook
+
+// url = await wh.unbind(otherBot);                // with api.deleteWebhook
+// wh = wh.delete(otherBot2);                      // without api.deleteWebhook
+
+
+// wh.bind(bot, options[url|objOpt.setWebhook], onMessage)
+// wh.unbind(bot)
+// wh.set(bot, url, onMessage)
+// wh.delete(url)
+
+
+// https://core.telegram.org/bots/api#setwebhook
 ```
 
 
@@ -195,9 +247,14 @@ bot.sendMessage(markup({
 }).reply()); // .forceReply()
 
 
-// keyboard(kb, oneTime[, resize = true, selective = false])
-// removeKeyboard([selective = false])
-// forceReply([selective = false])
+// Possible signatures:
+// markup(bindMessage).[METHOD]
+
+// markup.keyboard(kb, oneTime[, resize = true, selective = false])
+// markup.removeKeyboard([selective = false])
+// markup.forceReply([selective = false])
+
+// https://core.telegram.org/bots/api#replykeyboardmarkup
 ```
 
 
