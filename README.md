@@ -146,10 +146,14 @@ void async function Webhook() {
 
     // Always the first (base)
     watch("message", function(val) {
-        const es = (entities(message) || {});
+        const es = entities(val);
 
-        for(let t of ["bot_command", "hashtag"]) {
-            es[t] && es[t].forEach((e) => message[`${t}${e}`] = e);
+        for(let type of Object.keys(es || {})) {
+            es[type].forEach((e) => val[`${type}${e}`] = e);
+        }
+        
+        if(es) {
+            delete val.text;
         }
     });
 
