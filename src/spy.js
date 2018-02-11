@@ -46,7 +46,7 @@ function spy() {
 
             const watch = (type, listener) => {
                 const ctx = Object.create(this);
-                const ls = function() { return listener.apply(ctx, arguments); }
+                const ls = function() { return listener.apply(ctx, arguments); };
 
                 ctx.destroy = () => _bind.removeListener(type, ls);
 
@@ -120,7 +120,7 @@ function spy() {
                 const t = _bind.subTypes[eventType];
 
                 for(let d, i = 0, len = t && t.length; t && i < len; ++i) {
-                    const {type, path} = t[i]
+                    const {type, path} = t[i];
 
                     d = getDataByPath(update, path);
 

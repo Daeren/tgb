@@ -124,13 +124,13 @@ void async function HTTPS() {
 const bot = tgb(process.env.TELEGRAM_BOT_TOKEN);
 const {webhook, spy, entities} = tgb;
 
+//-----------------------------------------------------
+
 void async function Webhook() {
     const wh = await webhook({host: "localhost", port: 1490});
     const watch = spy();
 
     const url = await wh.bind(bot, "db.gg:88/custom", watch.update);
-
-    // Sort by depth
 
     // Second
     watch("message.text", function(val, bot, message) {
@@ -148,6 +148,9 @@ void async function Webhook() {
 
     // Last
     watch("message.from.id", function(val, bot) {});
+
+
+    // Sort by depth
 }();
 
 void async function Polling() {
@@ -162,6 +165,7 @@ void async function Polling() {
 // w(type, listener(val, bot, message));     // set: listener.destroy()
 // w.on(type, listener(val, bot, message));
 // w.update(data[, bot]);
+
 
 // Except "update_id"
 // https://core.telegram.org/bots/api#update
