@@ -139,23 +139,29 @@ void async function Webhook() {
         }
     });
 
-    // First
+    // Last
+    watch("message.from.id", function(val, bot) {});
+
+    // Always the first (base)
     watch("message", function(val, bot, message) {
         if(val === message) {
             entities(val);
         }
     });
 
-    // Last
-    watch("message.from.id", function(val, bot) {});
-
 
     // Sort by depth
 }();
 
 void async function Polling() {
-    const watch = spy();
+    const watch = spy({desc: true}); // Change the sort order
     polling(bot.token, (data) => watch.update(data, bot));
+
+    // Last
+    watch("message.text", function(val, bot) {});
+
+    // First
+    watch("message.from.id", function(val, bot) {});
 }();
 
 

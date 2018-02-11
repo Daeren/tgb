@@ -37,9 +37,12 @@ function spy() {
     //---------------------]>
 
     class Spy extends EE {
-        constructor() {
+        constructor(options) {
             super();
 
+            //------]>
+
+            options = options || {};
             _bind = this;
 
             //------]>
@@ -57,7 +60,17 @@ function spy() {
 
             //------]>
 
+            this._sortDesc = typeof(options.desc) === "undefined" ? true : !!options.desc;
             this.subTypes = {};
+
+            //------]>
+
+            if(this._sortDesc) {
+                this._sortFunc = (a, b) => b.path.length - a.path.length
+            }
+            else {
+                this._sortFunc = (a, b) => a.path.length - b.path.length
+            }
 
             //------]>
 
@@ -75,7 +88,7 @@ function spy() {
                     if(!super.listenerCount(type)) {
                         _bind.subTypes[t] = _bind.subTypes[t] || [];
                         _bind.subTypes[t].push({type, path});
-                        _bind.subTypes[t] = _bind.subTypes[t].sort((a, b) => a.path.length - b.path.length);
+                        _bind.subTypes[t] = _bind.subTypes[t].sort(_bind._sortFunc);
                     }
                 }
             }
