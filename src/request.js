@@ -8,7 +8,7 @@
 const http = require("http");
 const https = require("https");
 
-const events = require("events");
+const EE = require("events");
 
 const {
     cbNoop,
@@ -58,7 +58,7 @@ let proxyAddressCache = NaN;
 
 //-----------------------------------------------------
 
-class Request extends events {
+class Request extends EE {
     get paused() { return this.__pause || false; }
     get aborted() { return this.__aborted || false; }
     get ended() { return this.__ended || false; }

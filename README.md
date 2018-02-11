@@ -2,7 +2,7 @@
 [![Bot API](https://img.shields.io/badge/Bot%20API-v.3.5-blue.svg)](https://core.telegram.org/bots/api)
 
 
-```
+```js
 npm -g install tgb
 git clone https://github.com/Daeren/tgb.git
 ```
@@ -13,12 +13,13 @@ await require("tgb")("T", "sendmessage", [0, "+"], proxy)
 await require("tgb").sendMessage("T", {chat_id: 0, text: "+"}, proxy)
 ```
 
-```
+```js
 > tgb-cli --polling TOKEN --echo -j
 ```
 
 
 * [WebHook](#refWebHook): +
+* [Spy](#refSpy): +
 * [Download](#refDownload): +
 * [Proxy](#refProxy): +
 * [File as Buffer](#refSendFileAsBuffer): +
@@ -31,16 +32,6 @@ await require("tgb").sendMessage("T", {chat_id: 0, text: "+"}, proxy)
 * Redirect: +
 * HashTable, Array and [Map][10] as a data source: +
 * Without Dependencies: +
-
-
-```
-- All methods in the Bot API are case-insensitive (.buffer, .json, .require)
-
-- message:                                             buffer, stream, string
-- location|venue|contact:                              buffer, stream, string
-- photo|audio|voice|video|document|sticker|video_note: buffer, stream, path, url, file_id
-- certificate:                                         buffer, stream, path, url
-```
 
 
 ```js
@@ -99,6 +90,8 @@ void async function HTTPS() {
     const url = await wh.bind(bot, "db.gg", function({message}, bot) {
         this.sendMessage([message.from.id, `Hi: ${message.text}`]);
     });
+
+    // url = https://db.gg:8443/tg_bot_<sha256(token)>
 }();
 
 
@@ -121,6 +114,57 @@ void async function HTTPS() {
 
 
 // https://core.telegram.org/bots/api#setwebhook
+```
+
+
+<a name="refSpy"></a>
+#### Spy
+
+```js
+const bot = tgb(process.env.TELEGRAM_BOT_TOKEN);
+const {webhook, spy, entities} = tgb;
+
+void async function Webhook() {
+    const wh = await webhook({host: "localhost", port: 1490});
+    const watch = spy();
+
+    const url = await wh.bind(bot, "db.gg:88/custom", watch.update);
+
+    // Sort by depth
+
+    // Second
+    watch("message.text", function(val, bot, message) {
+        if(val === "die") {
+            this.destroy();
+        }
+    });
+
+    // First
+    watch("message", function(val, bot, message) {
+        if(val === message) {
+            entities(val);
+        }
+    });
+
+    // Last
+    watch("message.from.id", function(val, bot) {});
+}();
+
+void async function Polling() {
+    const watch = spy();
+    polling(bot.token, (data) => watch.update(data, bot));
+}();
+
+
+// EventEmitter => spy
+
+// w = spy();
+// w(type, listener(val, bot, message));     // set: listener.destroy()
+// w.on(type, listener(val, bot, message));
+// w.update(data[, bot]);
+
+// Except "update_id"
+// https://core.telegram.org/bots/api#update
 ```
 
 
@@ -265,10 +309,10 @@ class MyBot extends Client {
     }
 
     send(id) {
-        return this.sendMessage([id, this.msg]);
+        return this.sendMessage(id, this.msg);
     }
 
-    sendMessage([cid, text]) {
+    sendMessage(cid, text) {
         return super.sendMessage([cid, `watch?${text}`]);
     }
 }
@@ -314,7 +358,7 @@ bot.sendMediaGroup({
 > tgb-cli --method getMe --token 0:XXXX --proxy "127.0.0.1:1337"
 
 > tgb-cli --method sendMessage --data "{\"chat_id\":0,\"text\":\"Hi yo\"}"
-> tgb-cli --method sendMessage --d.chat_id 1 --data "{\"chat_id\":0,\"text\":\"Hi yo\"}"
+> tgb-cli --method sendMessage --d.chat_id 0 --data "{\"chat_id\":1,\"text\":\"Hi yo\"}"
 
 > tgb-cli --download TOKEN --name x --id "AgADAgAD36gxGwWj2EuIQ9vvX_3kbh-cmg4ABDhqGLqV07c_phkBAAEC"
 > tgb-cli --download --dir "./temp/" --id "AgADAgAD36gxGwWj2EuIQ9vvX_3kbh-cmg4ABDhqGLqV07c_phkBAAEC"
@@ -323,8 +367,17 @@ bot.sendMediaGroup({
 
 #### Misc
 
-```
+```js
 /*
+ All methods in the Bot API are case-insensitive (.buffer, .json, .require)
+
+ message:                                             buffer, stream,string
+ location|venue|contact:                              buffer, stream,string
+ photo|audio|voice|video|document|sticker|video_note: buffer, stream, filepath, url, file_id
+ certificate:                                         buffer, stream, filepath, url
+
+-
+
  tgb = require("tgb");
 
 -

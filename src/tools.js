@@ -35,7 +35,7 @@ module.exports = {
     isFilepath,
 
     pump,
-    wrapReqToPromise,
+    getDataByPath,
 
     getFilenameFromStream,
     getFileExtByMime,
@@ -163,26 +163,28 @@ function pump(src, dest, done) {
     return dest;
 }
 
-function wrapReqToPromise(getReq) {
-    let resolve,
-        reject;
+function getDataByPath(data, path) {
+    if(!data || !path || !Array.isArray(path)) {
+        return void(0);
+    }
 
-    //-------]>
+    for(let p, i = 0, len = path.length; i < len; i++) {
+        if(typeof(data) === "undefined") {
+            return data;
+        }
 
-    const response = new Promise((res, rej) => { resolve = res, reject = rej; });
-    const request = getReq((v) => resolve(v), (v) => reject(v));
+        p = path[i];
 
-    //------------]>
+        if(Array.isArray(data)) {
+            const pos = data.indexOf(p);
+            data = pos === -1 ? void(0) : data[pos];
+        }
+        else {
+            data = data[p];
+        }
+    }
 
-    response.request = request;
-    response[Symbol.iterator] = function *() {
-        yield response;
-        yield request;
-    };
-
-    //------------]>
-
-    return response;
+    return data;
 }
 
 //-----------------------------------------------------

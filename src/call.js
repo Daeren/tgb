@@ -408,22 +408,15 @@ function cork(request) {
     return request;
 }
 
-function uncork(request, now) {
+function uncork(request) {
     if(request.corked) {
-        const unc = () => {
+        process.nextTick(() => {
             const sk = request.socket;
 
             if(sk && !sk.destroyed) {
                 sk.uncork();
             }
-        };
-
-        if(now) {
-            unc();
-        }
-        else {
-            process.nextTick(unc);
-        }
+        });
 
         request.corked = false;
     }
