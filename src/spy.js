@@ -31,7 +31,7 @@ module.exports = spy;
 
 //-----------------------------------------------------
 
-function spy() {
+function spy(options) {
     let _bind;
 
     //---------------------]>
@@ -60,16 +60,16 @@ function spy() {
 
             //------]>
 
-            this._sortDesc = typeof(options.desc) === "undefined" ? true : !!options.desc;
+            this._sortDesc = typeof(options.desc) === "undefined" ? false : !!options.desc;
             this.subTypes = {};
 
             //------]>
 
             if(this._sortDesc) {
-                this._sortFunc = (a, b) => b.path.length - a.path.length
+                this._sortFunc = (a, b) => b.path.length - a.path.length;
             }
             else {
-                this._sortFunc = (a, b) => a.path.length - b.path.length
+                this._sortFunc = (a, b) => a.path.length - b.path.length;
             }
 
             //------]>
@@ -171,5 +171,5 @@ function spy() {
 
     //---------------------]>
 
-    return new Spy();
+    return new Spy(options);
 }

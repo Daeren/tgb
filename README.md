@@ -28,7 +28,7 @@ await require("tgb").sendMessage("T", {chat_id: 0, text: "+"}, proxy)
 * [Markup](#refMarkup): +
 * [Extensibility](#refExtensibility): +
 * [CLI](#refCLI): +
-* Entities: +
+* [Entities](#refSpy): +
 * Redirect: +
 * HashTable, Array and [Map][10] as a data source: +
 * Without Dependencies: +
@@ -127,12 +127,14 @@ const {webhook, spy, entities} = tgb;
 //-----------------------------------------------------
 
 void async function Webhook() {
-    const wh = await webhook({host: "localhost", port: 1490});
     const watch = spy();
 
+    const wh = await webhook({host: "localhost", port: 1490});
     const url = await wh.bind(bot, "db.gg:88/custom", watch.update);
 
     // Second
+    watch("message.bot_command/start", function(val, bot) {});
+    watch("message.hashtag#win", function(val, bot) {});
     watch("message.text", function(val, bot, message) {
         if(val === "die") {
             this.destroy();
@@ -140,12 +142,14 @@ void async function Webhook() {
     });
 
     // Last
-    watch("message.from.id", function(val, bot) {});
+    watch("message.from.id", function() {});
 
     // Always the first (base)
-    watch("message", function(val, bot, message) {
-        if(val === message) {
-            entities(val);
+    watch("message", function(val) {
+        const es = (entities(message) || {});
+
+        for(let t of ["bot_command", "hashtag"]) {
+            es[t] && es[t].forEach((e) => message[`${t}${e}`] = e);
         }
     });
 
