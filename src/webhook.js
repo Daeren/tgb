@@ -227,10 +227,12 @@ function webhook(port, options) {
 
                 //--------]>
 
-                end();
-
                 if(!bot) {
+                    end(400);
                     return;
+                }
+                else {
+                    end();
                 }
 
                 //--------]>
@@ -264,8 +266,8 @@ function webhook(port, options) {
 
             //----)>
 
-            function end() {
-                response.writeHead(200);
+            function end(code = 200) {
+                response.writeHead(code);
                 response.end();
             }
         }
