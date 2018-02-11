@@ -51,7 +51,7 @@ function spy(options) {
                 const ctx = Object.create(this);
                 const ls = function() { return listener.apply(ctx, arguments); };
 
-                ctx.destroy = () => _bind.removeListener(type, ls);
+                ctx.destroy = () => this.removeListener(type, ls);
 
                 return this.on(type, ls);
             };
@@ -86,9 +86,9 @@ function spy(options) {
                     const t = path.shift();
 
                     if(!super.listenerCount(type)) {
-                        _bind.subTypes[t] = _bind.subTypes[t] || [];
-                        _bind.subTypes[t].push({type, path});
-                        _bind.subTypes[t] = _bind.subTypes[t].sort(_bind._sortFunc);
+                        this.subTypes[t] = this.subTypes[t] || [];
+                        this.subTypes[t].push({type, path});
+                        this.subTypes[t] = this.subTypes[t].sort(this._sortFunc);
                     }
                 }
             }
@@ -99,7 +99,7 @@ function spy(options) {
 
             if(path.length > 1) {
                 const t = path.shift();
-                _bind.subTypes[t] = _bind.subTypes[t].filter((e) => e.type !== type);
+                this.subTypes[t] = this.subTypes[t].filter((e) => e.type !== type);
             }
         }
 
@@ -149,7 +149,7 @@ function spy(options) {
         }
 
         on(type, listener) {
-            _bind._setSubType(type);
+            this._setSubType(type);
             return super.on(type, listener);
         }
 
@@ -157,14 +157,14 @@ function spy(options) {
             const result = super.removeListener(type, listener);
 
             if(!super.listenerCount(type)) {
-                _bind._removeSubType(type);
+                this._removeSubType(type);
             }
 
             return result;
         }
 
         removeAllListeners(type) {
-            _bind._removeSubType(type);
+            this._removeSubType(type);
             return super.removeAllListeners(type);
         }
     }

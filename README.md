@@ -151,7 +151,7 @@ void async function Webhook() {
         for(let type of Object.keys(es || {})) {
             es[type].forEach((e) => val[`${type}${e}`] = e);
         }
-        
+
         if(es) {
             delete val.text;
         }
