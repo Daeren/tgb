@@ -13,10 +13,6 @@ const {
 
 //-----------------------------------------------------
 
-let updates = [];
-
-//-----------------------------------------------------
-
 module.exports = spy;
 
 //-----------------------------------------------------
@@ -51,6 +47,8 @@ function spy(options) {
             //------]>
 
             this._sortDesc = typeof(options.desc) === "undefined" ? false : !!options.desc;
+
+            this.updates = [];
             this.subTypes = {};
 
             //------]>
@@ -80,8 +78,8 @@ function spy(options) {
                         this.subTypes[t] = this.subTypes[t].sort(this._sortFunc);
                     }
 
-                    if(updates.indexOf(type) === -1) {
-                        updates.push(t);
+                    if(this.updates.indexOf(type) === -1) {
+                        this.updates.push(t);
                     }
                 }
             }
@@ -102,7 +100,7 @@ function spy(options) {
                     }
 
                     if(!this.subTypes[t] && !super.listenerCount(t)) {
-                        updates = updates.filter((e) => e !== t);
+                        this.updates = this.updates.filter((e) => e !== t);
                     }
                 }
             }
@@ -122,8 +120,8 @@ function spy(options) {
 
             //---------]>
 
-            for(let i = 0, len = updates.length; !update && i < len; ++i) {
-                update = data[eventType = updates[i]];
+            for(let i = 0, len = _bind.updates.length; !update && i < len; ++i) {
+                update = data[eventType = _bind.updates[i]];
 
             }
 
@@ -169,7 +167,9 @@ function spy(options) {
         }
 
         removeAllListeners(type) {
-            this._removeSubType(type);
+            this.updates = [];
+            this.subTypes = {};
+
             return super.removeAllListeners(type);
         }
     }

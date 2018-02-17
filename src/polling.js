@@ -14,7 +14,11 @@ module.exports = polling;
 
 //-----------------------------------------------------
 
-function polling(token, options, onMessage) {
+function polling(bot, options, onMessage) {
+    if(typeof(bot) === "string") {
+        bot = client(bot);
+    }
+
     if(typeof(options) === "function") {
         onMessage = options;
         options = null;
@@ -30,7 +34,6 @@ function polling(token, options, onMessage) {
 
     //----------------]>
 
-    const bot = client(token);
     const tmInterval = Math.max(Math.trunc(options.interval) || 2, 1) * 1000;
 
     let tmPolling,

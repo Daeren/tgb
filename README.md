@@ -43,7 +43,7 @@ const {polling, entities} = tgb;
 
 //-----------------------------------------------------
 
-polling(bot.token, function({message}) {
+polling(bot, function({message}, bot) {
     bot.sendMessage([message.from.id, entities(message)]);
 }).catch(function(error) {
     if(error.code === bot.ERR_INVALID_TOKEN) {
@@ -59,8 +59,9 @@ polling(bot.token, function({message}) {
 
 // send: tg @gamebot /start x http://db.gg
 
-// tgb.polling(token, onMessage(data)).stop().start();
-// tgb.polling(token, options{limit, timeout, interval}, onMessage(data));
+// tgb.polling(token, onMsg(data, bot)).stop().start();
+// tgb.polling(token, options{limit, timeout, interval}, onMsg(data, bot));
+// tgb.polling(bot, ...);
 
 // https://core.telegram.org/bots/api#getupdates
 // https://core.telegram.org/bots/api#messageentity
@@ -193,8 +194,7 @@ void async function Webhook() {
 
 void async function Polling() {
     const watch = spy({desc: true}); // Change the sort order
-
-    polling(bot.token, (data) => watch.update(data, bot));
+    polling(bot, watch.update);
 
     // Third
     watch("message.text", function(val, bot, message) {
@@ -289,11 +289,13 @@ void async function() {
     }, 4500);
 
     console.log(await res);
-    console.log(req.paused, req.finished, req.ended, req.aborted);
-    //      response was received -^          ^- request has been sent
 
-    // If a request has been aborted, this value is the time when the request was aborted,
-    // in milliseconds since 1 January 1970 00:00:00 UTC.
+
+    // | If a request has been aborted, this value is the time when the request was aborted,
+    // | in milliseconds since 1 January 1970 00:00:00 UTC.
+    // +-----------v
+    console.log(req.aborted, req.finished, req.ended, req.paused);
+    //   response was received -^             ^- request has been sent
 }();
 ```
 
@@ -462,10 +464,6 @@ const [res, req] = bot.sendMessage(markup({
  location|venue|contact:                              buffer, stream, string
  photo|audio|voice|video|document|sticker|video_note: buffer, stream, filepath, url, file_id
  certificate:                                         buffer, stream, filepath, url
-
--
-
- tgb = require("tgb");
 
 -
 
