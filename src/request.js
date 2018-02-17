@@ -188,7 +188,7 @@ function call(proxy, token, method, cbInit, cbResult) {
                 e.code = "EBADPROXY";
                 e.response = response;
 
-                instance.__destroy(e)
+                instance.__destroy(e);
             }
         });
     }

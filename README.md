@@ -18,7 +18,7 @@ await require("tgb").sendMessage("T", {chat_id: 0, text: "+"}, proxy)
 ```
 
 
-* [QoS](#refQoS): ~dev
+* [QoS](#refQoS): dev
 * [WebHook](#refWebHook): +
 * [Spy](#refSpy): +
 * [Download](#refDownload): +
@@ -122,7 +122,7 @@ void async function HTTPS() {
 ```
 
 
-<a name="refSpy"></a>
+<a name=""></a>
 #### Spy
 
 ```js
@@ -135,7 +135,10 @@ void async function Webhook() {
     const watch = spy();
 
     const wh = await webhook({host: "localhost", port: 1490});
-    const url = await wh.bind(bot, "db.gg:88/custom", function(data, bot) {
+    const url = await wh.bind(bot, "db.gg:88/custom", parseEntities);
+
+    
+    function parseEntities(data, bot) {
         const {message} = data;
 
         if(message) {
@@ -152,7 +155,7 @@ void async function Webhook() {
         // ^---| Mutation: bot_command, hashtag, etc
 
         watch.update(data, bot);
-    });
+    }
 
 
     // Second
@@ -178,11 +181,16 @@ void async function Webhook() {
     //    ^---| Scope
 
 
-    //       Nested objects: sort by depth |---v
-    // [bot_command/start, hashtag#win, message[...]]
-    // ^---| The Spy calls only the first available scope
-    //     | The Spy calls all listeners synchronously in the order in which they were registered
+/*******************************************************
+           Nested objects: sort by depth |---v
+
+     [bot_command/start, hashtag#win, message[...]]
+
+     ^---| The Spy calls only the first available scope
+         | The Spy calls all listeners synchronously in the order in which they were registered
+***/
 }();
+
 
 void async function Polling() {
     const watch = spy({desc: true}); // Change the sort order
@@ -282,7 +290,11 @@ void async function() {
     }, 4500);
 
     console.log(await res);
-    console.log(req.finished, req.ended, req.aborted, req.paused);
+    console.log(req.paused, req.finished, req.ended, req.aborted);
+    //      response was received -^          ^- request has been sent
+
+    // If a request has been aborted, this value is the time when the request was aborted,
+    // in milliseconds since 1 January 1970 00:00:00 UTC.
 }();
 ```
 

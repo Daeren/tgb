@@ -83,7 +83,7 @@ function forceReply(selective) {
 function inlineLink(text, url) {
     return {
         "inline_keyboard": Array.isArray(text) ? Array.prototype.map.call(arguments, ([text, url]) => [{text, url}]) : [[{text, url}]]
-    }
+    };
 }
 
 //-----------------------------------------------------

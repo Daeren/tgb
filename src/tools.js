@@ -133,19 +133,6 @@ class DLL {
         return ret;
     }
 
-    filter(iter) {
-        let p = this.head;
-
-        while(p) {
-            if(iter(p.data)) {
-                p = p.next;
-            }
-            else {
-                p = queue.remove(p);
-            }
-        }
-    }
-
     clear() {
         this.head = this.tail = null;
         this.length = 0;

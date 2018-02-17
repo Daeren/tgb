@@ -13,7 +13,7 @@ const {
 
 //-----------------------------------------------------
 
-const updates = [];
+let updates = [];
 
 //-----------------------------------------------------
 
@@ -70,32 +70,41 @@ function spy(options) {
 
         _setSubType(type) {
             if(type && typeof(type) === "string") {
-                const path = type.trim().split(".");
-
-                if(path.length > 1) {
+                if(!super.listenerCount(type)) {
+                    const path = type.trim().split(".");
                     const t = path.shift();
 
-                    if(!super.listenerCount(type)) {
+                    if(path.length >= 1) {
                         this.subTypes[t] = this.subTypes[t] || [];
                         this.subTypes[t].push({type, path});
                         this.subTypes[t] = this.subTypes[t].sort(this._sortFunc);
                     }
-                }
-                else if(!super.listenerCount(type)) {
-                    updates.push(type);
+
+                    if(updates.indexOf(type) === -1) {
+                        updates.push(t);
+                    }
                 }
             }
         }
 
         _removeSubType(type) {
-            const path = type.trim().split(".");
+            if(type && typeof(type) === "string") {
+                if(!super.listenerCount(type)) {
+                    const path = type.trim().split(".");
+                    const t = path.shift();
 
-            if(path.length > 1) {
-                const t = path.shift();
-                this.subTypes[t] = this.subTypes[t].filter((e) => e.type !== type);
-            }
-            else if(!super.listenerCount(type)) {
-                updates = updates.filter((e) => e !== type);
+                    if(path.length >= 1) {
+                        this.subTypes[t] = this.subTypes[t].filter((e) => e.type !== type);
+
+                        if(!this.subTypes[t].length) {
+                            delete this.subTypes[t];
+                        }
+                    }
+
+                    if(!this.subTypes[t] && !super.listenerCount(t)) {
+                        updates = updates.filter((e) => e !== t);
+                    }
+                }
             }
         }
 
@@ -154,10 +163,7 @@ function spy(options) {
 
         removeListener(type, listener) {
             const result = super.removeListener(type, listener);
-
-            if(!super.listenerCount(type)) {
-                this._removeSubType(type);
-            }
+            this._removeSubType(type);
 
             return result;
         }
