@@ -122,7 +122,7 @@ void async function HTTPS() {
 ```
 
 
-<a name=""></a>
+<a name="refSpy"></a>
 #### Spy
 
 ```js
@@ -137,7 +137,6 @@ void async function Webhook() {
     const wh = await webhook({host: "localhost", port: 1490});
     const url = await wh.bind(bot, "db.gg:88/custom", parseEntities);
 
-    
     function parseEntities(data, bot) {
         const {message} = data;
 
