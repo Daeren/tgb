@@ -13,17 +13,7 @@ const {
 
 //-----------------------------------------------------
 
-const updates = [
-    "message",
-    "edited_message",
-    "channel_post",
-    "edited_channel_post",
-    "inline_query",
-    "chosen_inline_result",
-    "callback_query",
-    "shipping_query",
-    "pre_checkout_query"
-];
+const updates = [];
 
 //-----------------------------------------------------
 
@@ -79,7 +69,7 @@ function spy(options) {
 
 
         _setSubType(type) {
-            if(typeof(type) === "string") {
+            if(type && typeof(type) === "string") {
                 const path = type.trim().split(".");
 
                 if(path.length > 1) {
@@ -91,6 +81,9 @@ function spy(options) {
                         this.subTypes[t] = this.subTypes[t].sort(this._sortFunc);
                     }
                 }
+                else if(!super.listenerCount(type)) {
+                    updates.push(type);
+                }
             }
         }
 
@@ -100,6 +93,9 @@ function spy(options) {
             if(path.length > 1) {
                 const t = path.shift();
                 this.subTypes[t] = this.subTypes[t].filter((e) => e.type !== type);
+            }
+            else if(!super.listenerCount(type)) {
+                updates = updates.filter((e) => e !== type);
             }
         }
 
@@ -115,8 +111,11 @@ function spy(options) {
                 eventType,
                 eventSubType;
 
+            //---------]>
+
             for(let i = 0, len = updates.length; !update && i < len; ++i) {
                 update = data[eventType = updates[i]];
+
             }
 
             if(!update) {
@@ -125,14 +124,14 @@ function spy(options) {
 
             //---------]>
 
-            _bind.emit(eventType, update, bot, update);
+            _bind.emit(eventType, update, bot, data);
 
             //---------]>
 
             if(_bind.subTypes) {
                 const t = _bind.subTypes[eventType];
 
-                for(let d, i = 0, len = t && t.length; t && i < len; ++i) {
+                for(let d, i = 0, len = t && t.length || 0; i < len; ++i) {
                     const {type, path} = t[i];
 
                     d = getDataByPath(update, path);

@@ -59,12 +59,74 @@ let proxyAddressCache = NaN;
 //-----------------------------------------------------
 
 class Request extends EE {
+    constructor() {
+        super();
+        this.autoEnd = true;
+    }
+
+
     get paused() { return this.__pause || false; }
     get aborted() { return this.__aborted || false; }
     get ended() { return this.__ended || false; }
+    get finished() { return this.__finished || false; }
 
 
-    __destroy() {
+    end() {
+        if(!this.__aborted && !this.__ended) {
+            this.__end();
+            this.__ended = true;
+        }
+    }
+
+    abort() {
+        if(!this.__aborted && !this.__ended) {
+            this.__abort();
+            this.__aborted = Date.now();
+
+            this.__pause = false;
+        }
+    }
+
+    resume() {
+        if(!this.__aborted && !this.__ended) {
+            this.__pause = false;
+            this.emit("resume");
+        }
+    }
+
+    pause() {
+        if(!this.__aborted && !this.__ended) {
+            this.__pause = true;
+            this.emit("pause");
+        }
+    }
+
+
+    __destroy(error) {
+        if(this.__req) {
+            this.__req.destroy(error);
+            this.__req = null;
+        }
+
+        if(this.__tunReq) {
+            this.__tunReq.destroy(error);
+            this.__tunReq = null;
+        }
+    }
+
+    __end() {
+        if(this.__req) {
+            this.__req.end();
+            this.__req = null;
+        }
+
+        if(this.__tunReq) {
+            this.__tunReq.end();
+            this.__tunReq = null;
+        }
+    }
+
+    __abort() {
         if(this.__req) {
             this.__req.abort();
             this.__req = null;
@@ -73,31 +135,6 @@ class Request extends EE {
         if(this.__tunReq) {
             this.__tunReq.abort();
             this.__tunReq = null;
-        }
-    }
-
-
-    abort() {
-        if(!this.__aborted) {
-            this.__destroy();
-            this.__aborted = true;
-            this.__pause = false;
-
-            this.emit("abort");
-        }
-    }
-
-    resume() {
-        if(!this.aborted) {
-            this.__pause = false;
-            this.emit("resume");
-        }
-    }
-
-    pause() {
-        if(!this.aborted) {
-            this.__pause = true;
-            this.emit("pause");
         }
     }
 }
@@ -113,7 +150,7 @@ module.exports = {
 
 function call(proxy, token, method, cbInit, cbResult) {
     const path = `/bot${token}/${method}`;
-    const instance = createCallInstance();
+    const instance = new Request();
 
     //--------------]>
 
@@ -151,7 +188,7 @@ function call(proxy, token, method, cbInit, cbResult) {
                 e.code = "EBADPROXY";
                 e.response = response;
 
-                socket.destroy(e);
+                instance.__destroy(e)
             }
         });
     }
@@ -166,19 +203,13 @@ function call(proxy, token, method, cbInit, cbResult) {
 
     //--------------]>
 
-    function createCallInstance() {
-        return new Request();
-    }
-
-    //-------)>
-
     function tunRequest(opt, callback) {
         return http
             .request(opt)
             .setTimeout(reqTimeout, onTimeout)
-            .on("error", onError)
-            .on("abort", obAbort)
-            .on("connect", callback)
+            .once("error", onError)
+            .once("abort", obAbort)
+            .once("connect", callback)
             .end();
     }
 
@@ -186,8 +217,8 @@ function call(proxy, token, method, cbInit, cbResult) {
         return https
             .request(opt, onResponse)
             .setTimeout(reqTimeout, onTimeout)
-            .on("error", onError)
-            .on("abort", obAbort);
+            .once("error", onError)
+            .once("abort", obAbort);
     }
 
     //-------)>
@@ -198,10 +229,10 @@ function call(proxy, token, method, cbInit, cbResult) {
         //--------]>
 
         response
-            .on("aborted", obAbort)
-            .on("error", onResponseError)
+            .once("aborted", obAbort)
+            .once("error", onResponseError)
             .on("data", onResponseData)
-            .on("end", onResponseEnd);
+            .once("end", onResponseEnd);
 
         //--------]>
 
@@ -221,7 +252,7 @@ function call(proxy, token, method, cbInit, cbResult) {
         }
 
         function onResponseEnd() {
-            instance.__ended = true;
+            instance.__finished = true;
             cbResult(null, chunks ? Buffer.concat(chunks) : firstChunk || null, response);
         }
     }
@@ -232,7 +263,7 @@ function call(proxy, token, method, cbInit, cbResult) {
     }
 
     function onTimeout() {
-        this.destroy(new Error("Timeout"));
+        instance.__destroy(new Error("Timeout"));
     }
 
     function obAbort() {

@@ -21,7 +21,146 @@ const pumpPipeOpts = {"end": false};
 
 //-----------------------------------------------------
 
+class DLL {
+    constructor() {
+        this.head = null;
+        this.tail = null;
+        this.length = 0;
+    }
+
+    push(v) {
+        const entry = {"data": v, "next": null, "prev": this.tail};
+
+        if(this.length > 0) {
+            this.tail.next = entry;
+        }
+        else {
+            this.head = entry;
+        }
+
+        this.tail = entry;
+        ++this.length;
+    }
+
+    unshift(v) {
+        const entry = {"data": v, "next": this.head, "prev": null};
+
+        if(this.length === 0) {
+            this.tail = entry;
+        }
+        else {
+            this.head.prev = entry;
+        }
+
+        this.head = entry;
+        ++this.length;
+    }
+
+
+    shift() {
+        if(this.length === 0) {
+            return;
+        }
+
+        const ret = this.head.data;
+
+        if(this.length === 1) {
+            this.head = this.tail = null;
+        }
+        else {
+            this.head = this.head.next;
+            this.head.prev = null;
+        }
+
+        --this.length;
+        return ret;
+    }
+
+    pop() {
+        if(this.length === 0) {
+            return;
+        }
+
+        const ret = this.tail.data;
+
+        if(this.length === 1) {
+            this.head = this.tail = null;
+        }
+        else {
+            this.tail = this.tail.prev;
+            this.tail.next = null;
+        }
+
+        --this.length;
+        return ret;
+    }
+
+
+    remove(node) {
+        if(this.length === 0) {
+            return null;
+        }
+
+        let ret = null;
+
+        if(this.length === 1) {
+            this.head = this.tail = null;
+        }
+        else {
+            const tQP = node.prev;
+            const tQN = node.next;
+
+            if(tQP) {
+                tQP.next = tQN;
+                node.prev = null;
+            }
+            else {
+                this.head = tQN;
+            }
+
+            if(tQN) {
+                tQN.prev = tQP;
+                node.next = null;
+            }
+            else {
+                this.tail = tQP;
+            }
+
+            ret = tQN;
+        }
+
+        --this.length;
+        return ret;
+    }
+
+    filter(iter) {
+        let p = this.head;
+
+        while(p) {
+            if(iter(p.data)) {
+                p = p.next;
+            }
+            else {
+                p = queue.remove(p);
+            }
+        }
+    }
+
+    clear() {
+        this.head = this.tail = null;
+        this.length = 0;
+    }
+
+    first() {
+        return this.head.data;
+    }
+}
+
+//-----------------------------------------------------
+
 module.exports = {
+    DLL,
+
     cbNoop,
     once,
     forEachAsync,

@@ -18,6 +18,7 @@ await require("tgb").sendMessage("T", {chat_id: 0, text: "+"}, proxy)
 ```
 
 
+* [QoS](#refQoS): ~dev
 * [WebHook](#refWebHook): +
 * [Spy](#refSpy): +
 * [Download](#refDownload): +
@@ -42,23 +43,26 @@ const {polling, entities} = tgb;
 
 //-----------------------------------------------------
 
-polling(
-    bot.token,
-    function({message}) {
-        bot.sendMessage([message.from.id, entities(message)]);
-    })
-    .catch(function(error) {
-        if(error.code === bot.ERR_INVALID_TOKEN) {
-            this.stop(); // ~ this.start()
-            console.log("There's a problem with the token...");
-        }
-        else {
-            delete error.response;
-            console.log(error);
-        }
-    });
+polling(bot.token, function({message}) {
+    bot.sendMessage([message.from.id, entities(message)]);
+}).catch(function(error) {
+    if(error.code === bot.ERR_INVALID_TOKEN) {
+        this.stop();
+        console.log("There's a problem with the token...");
+    }
+    else {
+        delete error.response;
+        console.log(error);
+    }
+});
+
 
 // send: tg @gamebot /start x http://db.gg
+
+// tgb.polling(token, onMessage(data)).stop().start();
+// tgb.polling(token, options{limit, timeout, interval}, onMessage(data));
+
+// https://core.telegram.org/bots/api#getupdates
 // https://core.telegram.org/bots/api#messageentity
 ```
 
@@ -99,10 +103,10 @@ void async function HTTPS() {
 // wh = await webhook({host: "localhost", port: 1490});
 
 // url = await wh.bind(otherBot, "666.io:88", cb); // with api.setWebhook
-// wh = wh.set(otherBot2, url, cb);                // without api.setWebhook
+// wh = wh.set(otherBot2, url, cb);                // with no api.setWebhook
 
 // url = await wh.unbind(otherBot);                // with api.deleteWebhook
-// wh = wh.delete(otherBot2);                      // without api.deleteWebhook
+// wh = wh.delete(otherBot2);                      // with no api.deleteWebhook
 
 // await wh.close();
 
@@ -114,6 +118,7 @@ void async function HTTPS() {
 
 
 // https://core.telegram.org/bots/api#setwebhook
+// https://core.telegram.org/bots/self-signed
 ```
 
 
@@ -130,58 +135,83 @@ void async function Webhook() {
     const watch = spy();
 
     const wh = await webhook({host: "localhost", port: 1490});
-    const url = await wh.bind(bot, "db.gg:88/custom", watch.update);
+    const url = await wh.bind(bot, "db.gg:88/custom", function(data, bot) {
+        const {message} = data;
+
+        if(message) {
+            const es = entities(message);
+
+            for(let type of Object.keys(es || {})) {
+                es[type].forEach((e) => data[`${type}${e}`] = message);
+            }
+
+            if(es) {
+                delete data.message;
+            }
+        }
+        // ^---| Mutation: bot_command, hashtag, etc
+
+        watch.update(data, bot);
+    });
+
 
     // Second
-    watch("message.bot_command/start", function(val, bot) {});
-    watch("message.hashtag#win", function(val, bot) {});
+    watch("message.text", function() {});    // <|-
+                                             //  |
+    // Third      v---| Nested objects           |
+    watch("message.from.id", function() {}); //  |
+                                             //  |
+    // Second                                    |
+    watch("message.text", function() {});    // <|-
+
+    //    v---| Base: always first
+    watch("message", function() {});
+    //    ^---| Scope
+
+
+    //    v---| Scope |-----v
+    watch("bot_command/start.text", function() {});
+    watch("bot_command/start", function() {});
+    //    ^---| Base: always first
+
+    watch("hashtag#win", function() {});
+    //    ^---| Scope
+
+
+    //       Nested objects: sort by depth |---v
+    // [bot_command/start, hashtag#win, message[...]]
+    // ^---| The Spy calls only the first available scope
+    //     | The Spy calls all listeners synchronously in the order in which they were registered
+}();
+
+void async function Polling() {
+    const watch = spy({desc: true}); // Change the sort order
+
+    polling(bot.token, (data) => watch.update(data, bot));
+
+    // Third
     watch("message.text", function(val, bot, message) {
         if(val === "die") {
             this.destroy();
         }
     });
 
-    // Last
-    watch("message.from.id", function() {});
+    // Second
+    watch("message.from.id", function(val, bot, message) {});
 
-    // Always the first (base)
-    watch("message", function(val) {
-        const es = entities(val);
-
-        for(let type of Object.keys(es || {})) {
-            es[type].forEach((e) => val[`${type}${e}`] = e);
-        }
-
-        if(es) {
-            delete val.text;
-        }
-    });
-
-
-    // Sort by depth
-}();
-
-void async function Polling() {
-    const watch = spy({desc: true}); // Change the sort order
-    polling(bot.token, (data) => watch.update(data, bot));
-
-    // Last
-    watch("message.text", function(val, bot) {});
-
-    // First
-    watch("message.from.id", function(val, bot) {});
+    // Base: always first
+    watch("message", function(val, bot, data) {});
 }();
 
 
 // EventEmitter => spy
 
 // w = spy();
-// w(type, listener(val, bot, message));     // set: listener.destroy()
-// w.on(type, listener(val, bot, message));
+// w(type, listener(val, bot, data));     // set: listener.destroy()
+// w.on(type, listener(val, bot, data));
 // w.update(data[, bot]);
 
 
-// Except "update_id"
 // https://core.telegram.org/bots/api#update
 ```
 
@@ -202,6 +232,9 @@ const fileId = "AgADAgAD36gxGwWj2EuIQ9vvX_3kbh-cmg4ABDhqGLqV07c_phkBAAEC";
 void async function() {
     await download(bot.token, fileId);
 }();
+
+
+// await tgb.download(token, fileId[, dir = "./", filename = ""]);
 
 // https://core.telegram.org/bots/api#file
 ```
@@ -249,7 +282,7 @@ void async function() {
     }, 4500);
 
     console.log(await res);
-    console.log(req.ended, req.aborted, req.paused);
+    console.log(req.finished, req.ended, req.aborted, req.paused);
 }();
 ```
 
@@ -302,12 +335,12 @@ bot.sendMessage(markup({
 }).reply()); // .forceReply()
 
 
-// Possible signatures:
-// markup(bindMessage).[METHOD]
+// markup(message).[METHOD]
 
 // markup.keyboard(kb, oneTime[, resize = true, selective = false])
 // markup.removeKeyboard([selective = false])
 // markup.forceReply([selective = false])
+// markup.inlineLink(text, url) // or [text, url], ...
 
 // https://core.telegram.org/bots/api#replykeyboardmarkup
 ```
@@ -350,7 +383,7 @@ const fs = require("fs");
 const bot = tgb(process.env.TELEGRAM_BOT_TOKEN);
 
 bot.sendMediaGroup({
-    "chat_id": "59725308",
+    "chat_id": "0",
     "media": [
         {"type": "photo","media": "O://test.jpg"},
         {"type": "photo","media": fs.createReadStream("O://test.jpg")},
@@ -383,14 +416,39 @@ bot.sendMediaGroup({
 ```
 
 
+<a name="refQoS"></a>
+#### QoS (Future development plans)
+
+Considering Telegram's Bot documentation, currently the maximum amount of messages being sent by bots is limited to 30 messages/second for all ordinary messages and 20 messages/minute for group messages. When your bot hits spam limits, it starts to get 429 errors from Telegram API. And assuming that error handling in such case usually is coded as simple retrials, the running machine would spend a lot of CPU time retrying (or got locked down, depending on bot implementation details). And constantly retrying to send messages while ignoring API errors could result in your bot being banned for some time.
+
+That means, if you're making a production-ready bot, which should serve numerous users it's always a good idea to use throughput limiting mechanism for messages being sent. This way you could be sure that all messages would be delivered to end-users as soon as possible in ordered way.
+
+```js
+const tgb = require("tgb");
+const {markup, qos} = tgb;
+
+const bot = tgb(process.env.TELEGRAM_BOT_TOKEN);
+bot.qos = qos();
+
+const [res, req] = bot.sendMessage(markup({
+    "chat_id": "0",
+    "text": "NANI?!"
+}).inlineLink("Omae wa ... mou shindeiru ", "db.gg"));
+
+
+// https://core.telegram.org/bots/faq#broadcasting-to-users
+// https://en.wikipedia.org/wiki/Quality_of_service
+```
+
+
 #### Misc
 
 ```js
 /*
  All methods in the Bot API are case-insensitive (.buffer, .json, .require)
 
- message:                                             buffer, stream,string
- location|venue|contact:                              buffer, stream,string
+ message:                                             buffer, stream, string
+ location|venue|contact:                              buffer, stream, string
  photo|audio|voice|video|document|sticker|video_note: buffer, stream, filepath, url, file_id
  certificate:                                         buffer, stream, filepath, url
 
@@ -402,13 +460,6 @@ bot.sendMediaGroup({
 
  tgb.buffer(proxy, token, method, data, callback(error, buf, res))
  tgb.json(proxy, token, method, data, callback(error, json, res))
-
--
-
- tgb.polling(token, onMessage(data));
- tgb.polling(token, options{limit, timeout, interval}, onMessage(data));
-
- await tgb.download(token, fileId[, dir = "./", filename = ""]);
 
 -
 

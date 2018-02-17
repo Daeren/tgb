@@ -10,6 +10,8 @@ const baseMarkup = {
     removeKeyboard,
     forceReply,
 
+    inlineLink,
+
     "reply": forceReply
 };
 
@@ -74,6 +76,14 @@ function forceReply(selective) {
         "force_reply": true,
         selective
     };
+}
+
+//------)>
+
+function inlineLink(text, url) {
+    return {
+        "inline_keyboard": Array.isArray(text) ? Array.prototype.map.call(arguments, ([text, url]) => [{text, url}]) : [[{text, url}]]
+    }
 }
 
 //-----------------------------------------------------

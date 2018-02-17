@@ -57,18 +57,17 @@ function call(proxy, token, method, data, callback) {
         throw new Error("`method` was not specified");
     }
 
+    const schema = proto[method] || proto[method.toLowerCase()];
+
     //------------]>
 
-    const instance = request.call(proxy, token, method, onReqInit, function(...args) {
-        if(!instance.paused || instance.aborted) {
-            callback.apply(callback, args);
-        }
-        else {
-            instance.once("resume", function() {
-                callback.apply(callback, args);
-            });
-        }
-    });
+    if(typeof(schema) === "undefined") {
+        throw new Error(`Unknown method: "${method}"`);
+    }
+
+    //------------]>
+
+    const instance = request.call(proxy, token, method, onReqInit, onReqDone);
 
     //------------]>
 
@@ -76,31 +75,27 @@ function call(proxy, token, method, data, callback) {
 
     //------------]>
 
-    function onReqInit(request) {
+    function onReqInit(rawReq) {
+        if(instance.aborted) {
+            return;
+        }
+
+        //-------]>
+
         const dataIsMap = data instanceof(Map);
         const dataIsArray = dataIsMap ? false : Array.isArray(data);
         const dataLen = dataIsArray ? data.length : (dataIsMap ? data.size : -1);
 
         //-------]>
 
-        if(!data || dataLen === 0) {
-            request.end();
-            return;
-        }
+        if(!data || dataLen === 0 || schema === null) {
+            if(instance.autoEnd) {
+                instance.end();
+            }
+            else {
+                instance.emit("pending");
+            }
 
-        //-------]>
-
-        const schema = proto[method] || proto[method.toLowerCase()];
-
-        //-------]>
-
-        if(schema === null) {
-            request.end();
-            return;
-        }
-
-        if(!schema) {
-            request.destroy(new Error(`Unknown method: "${method}"`));
             return;
         }
 
@@ -116,13 +111,20 @@ function call(proxy, token, method, data, callback) {
         (function nextField() {
             ++count;
 
+            //------]>
+
             if(count >= limit) {
                 if(written) {
-                    request.write(mpCRLFBoundaryEnd);
-                    uncork(request);
+                    rawReq.write(mpCRLFBoundaryEnd);
+                    uncork(rawReq);
                 }
 
-                request.end();
+                if(instance.autoEnd) {
+                    instance.end();
+                }
+                else {
+                    instance.emit("pending");
+                }
             }
             else {
                 const [field, type] = schema[count];
@@ -135,23 +137,34 @@ function call(proxy, token, method, data, callback) {
                 }
                 else {
                     if(!written) {
-                        updateMpBoundary();
-                        request.setHeader("Content-Type", mpHeaderContentType);
-
                         written = true;
+
+                        updateMpBoundary();
+                        rawReq.setHeader("Content-Type", mpHeaderContentType);
                     }
 
-                    cork(request);
-                    request.write(makeFieldStr(field));
-                    writeData(request, field, type, input, nextField);
+                    cork(rawReq);
+                    rawReq.write(makeFieldStr(field));
+                    writeData(rawReq, field, type, input, nextField);
                 }
             }
         })();
     }
 
+    function onReqDone() {
+        if(!instance.paused || instance.aborted) {
+            callback.apply(callback, arguments);
+        }
+        else {
+            instance.once("resume", () => {
+                callback.apply(callback, arguments);
+            });
+        }
+    }
+
     //-------)>
 
-    function writeData(request, field, type, input, cbDoneNT) {
+    function writeData(rawReq, field, type, input, cbDoneNT) {
         switch(type) {
             case "mediaGroup": {
                 if(Array.isArray(input) && input.length) {
@@ -159,7 +172,7 @@ function call(proxy, token, method, data, callback) {
 
                     //--------]>
 
-                    request.write(JSON.stringify(input, function(k, v) {
+                    rawReq.write(JSON.stringify(input, function(k, v) {
                         if(k === "media") {
                             const isUri = v && typeof(v) === "string" ? v.match(reTgUri) : null;
                             const proto = isUri && isUri[0];
@@ -204,7 +217,7 @@ function call(proxy, token, method, data, callback) {
                     //--------]>
 
                     forEachAsync(files, function(next, [name, v], i) {
-                        writeData(request, name, input[i].type, v, next);
+                        writeData(rawReq, name, input[i].type, v, next);
                     }, done);
                 }
                 else {
@@ -219,8 +232,8 @@ function call(proxy, token, method, data, callback) {
             case "venue":
             case "contact": {
                 if(isStream(input)) {
-                    uncork(request);
-                    bindStreamPause(input, request);
+                    uncork(rawReq);
+                    bindStreamPause(input, rawReq);
 
                     return;
                 }
@@ -284,7 +297,7 @@ function call(proxy, token, method, data, callback) {
 
                         if(error) {
                             error.response = response;
-                            request.destroy(error);
+                            instance.__destroy(error);
                         }
                         else {
                             input = response;
@@ -309,7 +322,7 @@ function call(proxy, token, method, data, callback) {
 
         //-------------]>
 
-        request.write(makeFieldStrValue(type, input));
+        rawReq.write(makeFieldStrValue(type, input));
         done();
 
         //-------------]>
@@ -319,9 +332,7 @@ function call(proxy, token, method, data, callback) {
                 cbDoneNT();
             }
             else {
-                instance.once("resume", function() {
-                    cbDoneNT();
-                });
+                instance.once("resume", cbDoneNT);
             }
         }
 
@@ -357,19 +368,19 @@ function call(proxy, token, method, data, callback) {
                     cbDoneNT();
                 }
                 else if(closed) {
-                    request.destroy(new Error("The stream was closed before all expected data was received"));
+                    instance.__destroy(new Error("The stream was closed before all expected data was received"));
                 }
             });
         }
 
         function sendFile(filename) {
-            uncork(request);
+            uncork(rawReq);
 
             //-------]>
 
             if(Buffer.isBuffer(input)) {
-                request.write(makeFieldFile(field, filename));
-                request.write(input);
+                rawReq.write(makeFieldFile(field, filename));
+                rawReq.write(input);
 
                 done();
             }
@@ -380,14 +391,14 @@ function call(proxy, token, method, data, callback) {
 
                 if(own) {
                     rs.on("open", function(error) {
-                        request.write(makeFieldFile(field, fn));
+                        rawReq.write(makeFieldFile(field, fn));
                     });
                 }
                 else {
-                    request.write(makeFieldFile(field, fn));
+                    rawReq.write(makeFieldFile(field, fn));
                 }
 
-                bindStreamPause(rs, request);
+                bindStreamPause(rs, rawReq);
             }
         }
     }
@@ -395,33 +406,33 @@ function call(proxy, token, method, data, callback) {
 
 //-----------------------------------------------------
 
-function cork(request) {
-    if(!request.corked) {
-        const sk = request.socket;
+function cork(rawReq) {
+    if(!rawReq.corked) {
+        const sk = rawReq.socket;
 
         if(sk && !sk.destroyed) {
             sk.cork();
-            request.corked = true;
+            rawReq.corked = true;
         }
     }
 
-    return request;
+    return rawReq;
 }
 
-function uncork(request) {
-    if(request.corked) {
+function uncork(rawReq) {
+    if(rawReq.corked) {
         process.nextTick(() => {
-            const sk = request.socket;
+            const sk = rawReq.socket;
 
             if(sk && !sk.destroyed) {
                 sk.uncork();
             }
         });
 
-        request.corked = false;
+        rawReq.corked = false;
     }
 
-    return request;
+    return rawReq;
 }
 
 //-------------)>
