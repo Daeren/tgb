@@ -27,6 +27,7 @@ const proto = {
         ["chat_id", "string", true],
         ["photo", "photo", true],
         ["caption", "string", false],
+        ["parse_mode", "string", false],
         ["disable_notification", "boolean", false],
         ["reply_to_message_id", "string", false],
         ["reply_markup", "json", false]
@@ -35,6 +36,7 @@ const proto = {
         ["chat_id", "string", true],
         ["audio", "audio", true],
         ["caption", "string", false],
+        ["parse_mode", "string", false],
         ["duration", "string", false],
         ["performer", "string", false],
         ["title", "string", false],
@@ -46,6 +48,7 @@ const proto = {
         ["chat_id", "string", true],
         ["document", "document", true],
         ["caption", "string", false],
+        ["parse_mode", "string", false],
         ["disable_notification", "boolean", false],
         ["reply_to_message_id", "string", false],
         ["reply_markup", "json", false]
@@ -57,6 +60,8 @@ const proto = {
         ["width", "string", false],
         ["height", "string", false],
         ["caption", "string", false],
+        ["parse_mode", "string", false],
+        ["supports_streaming", "boolean", false],
         ["disable_notification", "boolean", false],
         ["reply_to_message_id", "string", false],
         ["reply_markup", "json", false]
@@ -65,6 +70,7 @@ const proto = {
         ["chat_id", "string", true],
         ["voice", "voice", true],
         ["caption", "string", false],
+        ["parse_mode", "string", false],
         ["duration", "string", false],
         ["disable_notification", "boolean", false],
         ["reply_to_message_id", "string", false],
@@ -365,6 +371,7 @@ const proto = {
         ["message_id", "string", false],
         ["inline_message_id", "string", false],
         ["caption", "string", false],
+        ["parse_mode", "string", false],
         ["reply_markup", "json", false]
     ],
     "editMessageReplyMarkup": [

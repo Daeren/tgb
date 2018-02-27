@@ -1,5 +1,5 @@
 [![Codacy][cod_b]][cod_l]
-[![Bot API](https://img.shields.io/badge/Bot%20API-v.3.5-blue.svg)](https://core.telegram.org/bots/api)
+[![Bot API](https://img.shields.io/badge/Bot%20API-v.3.6-blue.svg)](https://core.telegram.org/bots/api)
 
 
 ```js
