@@ -15,10 +15,6 @@ module.exports = polling;
 //-----------------------------------------------------
 
 function polling(bot, options, onMessage) {
-    if(typeof(bot) === "string") {
-        bot = client(bot);
-    }
-
     if(typeof(options) === "function") {
         onMessage = options;
         options = null;
@@ -31,6 +27,11 @@ function polling(bot, options, onMessage) {
         "timeout":  0,
         "interval": 2
     }, options || {});
+
+    if(typeof(bot) === "string") {
+        bot = client(bot);
+        bot.proxy = options.proxy;
+    }
 
     //----------------]>
 
@@ -107,7 +108,7 @@ function polling(bot, options, onMessage) {
                         id = d.update_id;
 
                         try {
-                            onMessage.call(instance, d);
+                            onMessage.call(instance, d, bot);
                             options.offset = id + 1;
                         } catch(e) {
                             e.data = d;
