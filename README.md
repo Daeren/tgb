@@ -38,15 +38,15 @@ await require("tgb").sendMessage("T", {chat_id: 0, text: "+"}, proxy)
 ```js
 const tgb = require("tgb");
 
-const bot = tgb(process.env.TELEGRAM_BOT_TOKEN);
+const token = process.env.TELEGRAM_BOT_TOKEN;
 const {polling, entities} = tgb;
 
 //-----------------------------------------------------
 
-polling(bot, function({message}, bot) {
-    bot.sendMessage([message.from.id, entities(message)]);
+polling(token, function({message}, bot) {
+    bot.sendMessage([message.from.id, entities(message) || "empty"]);
 }).catch(function(error) {
-    if(error.code === bot.ERR_INVALID_TOKEN) {
+    if(error.code === tgb.ERR_INVALID_TOKEN) {
         this.stop();
         console.log("There's a problem with the token...");
     }
@@ -61,7 +61,7 @@ polling(bot, function({message}, bot) {
 
 // tgb.polling(token, onMsg(data, bot)).stop().start();
 // tgb.polling(token, options{limit, timeout, interval}, onMsg(data, bot));
-// tgb.polling(bot, ...);
+// tgb.polling(bot, onMsg(data));
 
 // https://core.telegram.org/bots/api#getupdates
 // https://core.telegram.org/bots/api#messageentity
@@ -184,7 +184,7 @@ void async function Webhook() {
 /*******************************************************
            Nested objects: sort by depth |---v
 
-     [bot_command/start, hashtag#win, message[...]]
+     [message[...], bot_command/start, hashtag#win]
 
      ^---| The Spy calls only the first available scope
          | The Spy calls all listeners synchronously in the order in which they were registered
@@ -446,7 +446,7 @@ bot.qos = qos();
 const [res, req] = bot.sendMessage(markup({
     "chat_id": "0",
     "text": "NANI?!"
-}).inlineLink("Omae wa ... mou shindeiru ", "db.gg"));
+}).inlineLink("Omae wa ... mou shindeiru", "db.gg"));
 
 
 // https://core.telegram.org/bots/faq#broadcasting-to-users
