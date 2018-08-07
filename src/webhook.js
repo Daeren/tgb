@@ -124,7 +124,7 @@ function webhook(port, options) {
                     const u = new URL(options.url);
 
                     if(!u.port) {
-                        u.port = this.port || 88;
+                        u.port = 443;
                     }
 
                     if(!u.pathname || u.pathname.length === 1) {
@@ -146,7 +146,10 @@ function webhook(port, options) {
 
                             resolve(isOk ? options.url : null);
                         })
-                        .catch(reject);
+                        .catch(function(error) {
+                            error.url = options.url;
+                            reject(error);
+						});
                 });
             },
 
