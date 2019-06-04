@@ -37,14 +37,14 @@ function polling(bot, options, onMessage) {
 
     const tmInterval = Math.max(Math.trunc(options.interval) || 2, 1) * 1000;
 
-    let tmPolling,
+    let stopped = false;
+    let tick = false;
 
-        stopped = false,
-        tick = false;
+    let tmPolling;
 
     //----------------]>
 
-    runNextTick();
+    runLoadNextTick();
 
     //----------------]>
 
@@ -52,7 +52,7 @@ function polling(bot, options, onMessage) {
         start() {
             if(stopped) {
                 stopped = false;
-                runNextTick();
+                runLoadNextTick();
             }
 
             return this;
@@ -71,7 +71,7 @@ function polling(bot, options, onMessage) {
 
     //----------------]>
 
-    function runNextTick() {
+    function runLoadNextTick() {
         if(!tick) {
             tick = true;
             process.nextTick(load);

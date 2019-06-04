@@ -66,6 +66,19 @@ const proto = {
         ["reply_to_message_id", "string", false],
         ["reply_markup", "json", false]
     ],
+    "sendAnimation": [
+        ["chat_id", "string", true],
+        ["animation", "animation", true],
+        ["duration", "string", false],
+        ["width", "string", false],
+        ["height", "string", false],
+        ["thumb", "thumb", false],
+        ["caption", "string", false],
+        ["parse_mode", "string", false],
+        ["disable_notification", "boolean", false],
+        ["reply_to_message_id", "string", false],
+        ["reply_markup", "json", false]
+    ],
     "sendVoice": [
         ["chat_id", "string", true],
         ["voice", "voice", true],
@@ -372,6 +385,13 @@ const proto = {
         ["inline_message_id", "string", false],
         ["caption", "string", false],
         ["parse_mode", "string", false],
+        ["reply_markup", "json", false]
+    ],
+    "editMessageMedia": [
+        ["chat_id", "string", false],
+        ["message_id", "string", false],
+        ["inline_message_id", "string", false],
+        ["media", "mediaGroup", true],
         ["reply_markup", "json", false]
     ],
     "editMessageReplyMarkup": [

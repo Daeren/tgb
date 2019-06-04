@@ -1,4 +1,4 @@
-[![Codacy][cod_b]][cod_l]
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/75f668078ddc40fca21c21fd06fe9823)](https://www.codacy.com/app/daeren/tgb?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Daeren/tgb&amp;utm_campaign=Badge_Grade)
 [![Bot API](https://img.shields.io/badge/Bot%20API-v.3.6-blue.svg)](https://core.telegram.org/bots/api)
 
 
@@ -546,6 +546,3 @@ MIT
 [3]: https://core.telegram.org/bots/api
 
 [10]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map
-
-[cod_b]: https://img.shields.io/codacy/75f668078ddc40fca21c21fd06fe9823.svg
-[cod_l]: https://www.codacy.com/app/daeren/tgb/dashboard

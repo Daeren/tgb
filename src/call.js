@@ -167,7 +167,7 @@ function call(proxy, token, method, data, callback) {
     function writeData(rawReq, field, type, input, cbDoneNT) {
         switch(type) {
             case "mediaGroup": {
-                if(Array.isArray(input) && input.length) {
+                if(Array.isArray(input) && input.length || (input && typeof(input) === "object" && !Array.isArray(input))) {
                     const files = [];
 
                     //--------]>
@@ -249,6 +249,8 @@ function call(proxy, token, method, data, callback) {
             case "document":
             case "sticker":
             case "video":
+            case "animation":
+            case "thumb":
             case "voice":
             case "video_note":
             case "certificate": {
