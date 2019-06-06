@@ -40,6 +40,7 @@ const proto = {
         ["duration", "string", false],
         ["performer", "string", false],
         ["title", "string", false],
+        ["thumb", "thumb", false],
         ["disable_notification", "boolean", false],
         ["reply_to_message_id", "string", false],
         ["reply_markup", "json", false]
@@ -47,6 +48,7 @@ const proto = {
     "sendDocument": [
         ["chat_id", "string", true],
         ["document", "document", true],
+        ["thumb", "thumb", false],
         ["caption", "string", false],
         ["parse_mode", "string", false],
         ["disable_notification", "boolean", false],
@@ -59,6 +61,7 @@ const proto = {
         ["duration", "string", false],
         ["width", "string", false],
         ["height", "string", false],
+        ["thumb", "thumb", false],
         ["caption", "string", false],
         ["parse_mode", "string", false],
         ["supports_streaming", "boolean", false],
@@ -94,6 +97,7 @@ const proto = {
         ["video_note", "video_note", true],
         ["duration", "string", false],
         ["length", "string", false],
+        ["thumb", "thumb", false],
         ["disable_notification", "boolean", false],
         ["reply_to_message_id", "string", false],
         ["reply_markup", "json", false]
@@ -120,6 +124,7 @@ const proto = {
         ["title", "string", true],
         ["address", "string", true],
         ["foursquare_id", "string", false],
+        ["foursquare_type", "string", false],
         ["disable_notification", "boolean", false],
         ["reply_to_message_id", "string", false],
         ["reply_markup", "json", false]
@@ -129,6 +134,15 @@ const proto = {
         ["phone_number", "string", true],
         ["first_name", "string", true],
         ["last_name", "string", false],
+        ["vcard", "string", false],
+        ["disable_notification", "boolean", false],
+        ["reply_to_message_id", "string", false],
+        ["reply_markup", "json", false]
+    ],
+    "sendPoll": [
+        ["chat_id", "string", true],
+        ["question", "string", true],
+        ["options", "json", true],
         ["disable_notification", "boolean", false],
         ["reply_to_message_id", "string", false],
         ["reply_markup", "json", false]
@@ -398,6 +412,12 @@ const proto = {
         ["chat_id", "string", false],
         ["message_id", "string", false],
         ["inline_message_id", "string", false],
+        ["reply_markup", "json", false]
+    ],
+
+    "stopPoll": [
+        ["chat_id", "string", true],
+        ["message_id", "string", true],
         ["reply_markup", "json", false]
     ],
 

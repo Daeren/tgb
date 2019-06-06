@@ -40,6 +40,7 @@ function webhook(port, options) {
 
     options.host = typeof(options.host) === "string" ? options.host : "";
     options.port = parseInt(options.port, 10) || 88;
+    options.retryAfter = typeof(options.retryAfter) === "string" ? options.retryAfter : ""; // HTTP header: Retry-After
 
     //---------]>
 
@@ -270,7 +271,14 @@ function webhook(port, options) {
             //----)>
 
             function end(code = 200) {
+                const {retryAfter} = options;
+
                 response.writeHead(code);
+
+                if(retryAfter) {
+                    response.setHeader("Retry-After", retryAfter);
+                }
+
                 response.end();
             }
         }

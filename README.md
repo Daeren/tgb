@@ -1,5 +1,5 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/75f668078ddc40fca21c21fd06fe9823)](https://www.codacy.com/app/daeren/tgb?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Daeren/tgb&amp;utm_campaign=Badge_Grade)
-[![Bot API](https://img.shields.io/badge/Bot%20API-v.3.6-blue.svg)](https://core.telegram.org/bots/api)
+[![Bot API](https://img.shields.io/badge/Bot%20API-v.4.3-blue.svg)](https://core.telegram.org/bots/api)
 
 
 ```js
