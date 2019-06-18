@@ -64,8 +64,8 @@ module.exports = Object.assign(function(token, method, data, proxy) {
 //-----------------------------------------------------
 
 function client(token, method, data, proxy) {
-    let resolve,
-        reject;
+    let resolve;
+    let reject;
 
     //-------]>
 

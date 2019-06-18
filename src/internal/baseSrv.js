@@ -5,19 +5,26 @@
 //
 //-----------------------------------------------------
 
-const {
-    cbNoop
-} = require("./../tools");
+const _watchDog = (e) => {
+    throw e;
+};
 
 //-----------------------------------------------------
 
 module.exports = function(v) {
     return Object.assign({
+        _watchDog,
+
         start() {},
         stop() {},
 
         catch(callback) {
-            this._watchDog = typeof(callback) === "function" ? callback : cbNoop;
+            if(typeof(callback) !== "function") {
+                throw new Error("Not a function");
+            }
+
+            this._watchDog = callback;
+
             return this;
         }
     }, v);
