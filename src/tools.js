@@ -15,7 +15,7 @@ const https = require("https");
 //-----------------------------------------------------
 
 const reIsFilePath = /[\\\/\.]/;
-const reIsHttps = /^https?:\/\//;
+const reIsHttps = /^https:/;
 
 const pumpPipeOpts = {"end": false};
 
