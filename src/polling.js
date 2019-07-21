@@ -38,13 +38,11 @@ function polling(bot, options, onMessage) {
     const tmInterval = Math.max(Math.trunc(options.interval) || 2, 1) * 1000;
 
     let stopped = false;
-    let tick = false;
-
     let tmPolling;
 
     //----------------]>
 
-    runLoadNextTick();
+    wait();
 
     //----------------]>
 
@@ -52,14 +50,16 @@ function polling(bot, options, onMessage) {
         start() {
             if(stopped) {
                 stopped = false;
-                runLoadNextTick();
+                wait();
             }
 
             return this;
         },
         stop() {
-            stopped = true;
-            clearTimeout(tmPolling);
+            if(!stopped) {
+                stopped = true;
+                clearTimeout(tmPolling);
+            }
 
             return this;
         }
@@ -71,13 +71,6 @@ function polling(bot, options, onMessage) {
 
     //----------------]>
 
-    function runLoadNextTick() {
-        if(!tick) {
-            tick = true;
-            process.nextTick(load);
-        }
-    }
-
     function wait(moreSlowly) {
         if(!stopped) {
             tmPolling = setTimeout(load, tmInterval + (moreSlowly ? 3000 : 0));
@@ -85,12 +78,6 @@ function polling(bot, options, onMessage) {
     }
 
     function load() {
-        tick = false;
-
-        if(stopped) {
-            return;
-        }
-
         bot
             .getUpdates(options)
             .then(function(data) {
@@ -98,39 +85,40 @@ function polling(bot, options, onMessage) {
                     return;
                 }
 
-                if(data.length > 0) {
-                    for(let id, d, i = 0, len = data.length; i < len; ++i) {
-                        if(stopped) {
-                            return;
-                        }
+                if(data.length <= 0) {
+                    wait();
+                    return;
+                }
 
-                        d = data[i];
-                        id = d.update_id;
-
-                        try {
-                            onMessage.call(instance, d, bot);
-                            options.offset = id + 1;
-                        } catch(e) {
-                            e.data = d;
-
-                            callWatchDog(e);
-                            wait(true);
-
-                            return;
-                        }
+                for(let id, d, i = 0, len = data.length; i < len; ++i) {
+                    if(stopped) {
+                        return;
                     }
 
-                    load();
-                } else {
-                    wait();
+                    d = data[i];
+                    id = d.update_id;
+
+                    try {
+                        onMessage.call(instance, d, bot);
+                        options.offset = id + 1;
+                    } catch(e) {
+                        e.data = d;
+
+                        callWatchDog(e);
+                        wait(true);
+
+                        return;
+                    }
                 }
+
+                wait();
             })
             .catch(function(error) {
                 switch(error.code) {
                     case client.ERR_USED_WEBHOOK:
                         bot
                             .deleteWebhook()
-                            .then(load)
+                            .then(wait)
                             .catch(function(e) {
                                 e.context = error;
 
