@@ -47,6 +47,8 @@ function polling(bot, options, onMessage) {
     //----------------]>
 
     const instance = baseSrv({
+        get stopped() { return stopped; },
+
         start() {
             if(stopped) {
                 stopped = false;

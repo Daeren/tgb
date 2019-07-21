@@ -59,7 +59,7 @@ polling(token, function({message}, bot) {
 
 // send: tg @gamebot /start x http://db.gg
 
-// tgb.polling(token, onMsg(data, bot)).stop().start();
+// tgb.polling(token, onMsg(data, bot)).stop().start().stopped;
 // tgb.polling(token, options{proxy, limit, timeout, interval}, onMsg(data, bot));
 // tgb.polling(bot, onMsg(data));
 
