@@ -167,7 +167,9 @@ function call(proxy, token, method, data, callback) {
     function writeData(rawReq, field, type, input, cbDoneNT) {
         switch(type) {
             case "mediaGroup": {
-                if(Array.isArray(input) && input.length || (input && typeof(input) === "object" && !Array.isArray(input))) {
+                const inputIsArray = Array.isArray(input);
+
+                if(inputIsArray && input.length || (input && typeof(input) === "object" && !inputIsArray)) {
                     const files = [];
 
                     //--------]>
@@ -217,7 +219,7 @@ function call(proxy, token, method, data, callback) {
                     //--------]>
 
                     forEachAsync(files, function(next, [name, v], i) {
-                        writeData(rawReq, name, input[i].type, v, next);
+                        writeData(rawReq, name, inputIsArray ? input[i].type : input.type, v, next);
                     }, done);
                 }
                 else {
