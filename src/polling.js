@@ -80,13 +80,18 @@ function polling(bot, options, onMessage) {
     }
 
     function load() {
+		let reqDead = false;
+		let tmReqTtl = setTimeout(() => (reqDead = true, wait()), 1000 * 6);
+		
         bot
             .getUpdates(options)
             .then(function(data) {
-                if(stopped) {
+                clearTimeout(tmReqTtl);
+				
+                if(stopped || reqDead) {
                     return;
                 }
-
+				
                 if(data.length <= 0) {
                     wait();
                     return;
@@ -116,6 +121,12 @@ function polling(bot, options, onMessage) {
                 wait();
             })
             .catch(function(error) {
+                clearTimeout(tmReqTtl);
+				
+                if(stopped || reqDead) {
+                    return;
+                }
+				
                 switch(error.code) {
                     case client.ERR_USED_WEBHOOK:
                         bot
