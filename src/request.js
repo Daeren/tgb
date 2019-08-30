@@ -107,8 +107,7 @@ class Request extends EE {
             this.__req.destroy(error);
             this.__req = null;
         }
-
-        if(this.__tunReq) {
+        else if(this.__tunReq) {
             this.__tunReq.destroy(error);
             this.__tunReq = null;
         }
